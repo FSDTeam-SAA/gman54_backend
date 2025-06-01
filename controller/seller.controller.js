@@ -5,6 +5,8 @@ import AppError from "../errors/AppError.js";
 import httpStatus from "http-status";
 import { User } from "./../model/user.model.js";
 import { FarmCategory } from "./../model/farmCategory.model.js";
+import { Product } from "./../model/product.model.js";
+import { Order } from "./../model/order.model.js";
 
 // Apply to become a seller
 export const applySeller = catchAsync(async (req, res) => {
@@ -87,5 +89,108 @@ export const getAllCategories = catchAsync(async (req, res) => {
     success: true,
     message: "Farm categories fetched successfully",
     data: categories,
+  });
+});
+
+// Dashboard overview
+export const getDashboardOverview = catchAsync(async (req, res) => {
+  const sellerId = req.user._id;
+  const totalSales = await Order.aggregate([
+    { $match: { customer: sellerId } },
+    { $group: { _id: null, total: { $sum: "$totalPrice" } } },
+  ]);
+  const liveProducts = await Product.countDocuments({
+    seller: sellerId,
+    status: "active",
+  });
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    data: {
+      totalSales: totalSales[0]?.total || 0,
+      liveProducts,
+    },
+  });
+});
+
+// My Sales history
+export const getSalesHistory = catchAsync(async (req, res) => {
+  const sellerId = req.user._id;
+  const sales = await Order.find({ customer: sellerId })
+    .populate("product", "title thumbnail")
+    .sort({ date: -1 })
+    .limit(12);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    data: sales,
+  });
+});
+
+// Active Product List
+export const getActiveProducts = catchAsync(async (req, res) => {
+  const sellerId = req.user._id;
+  const products = await Product.find({ seller: sellerId, status: "active" })
+    .sort({ date: -1 })
+    .limit(12);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    data: products,
+  });
+});
+
+// Pending Product List
+export const getPendingProducts = catchAsync(async (req, res) => {
+  const sellerId = req.user._id;
+  const products = await Product.find({ seller: sellerId, status: "pending" })
+    .sort({ date: -1 })
+    .limit(12);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    data: products,
+  });
+});
+
+// Add Product
+export const addProduct = catchAsync(async (req, res) => {
+  const sellerId = req.user._id;
+  const { title, price, quantity, category } = req.body;
+  const files = req.files || [];
+
+  const media = await Promise.all(
+    files.map(async (file) => {
+      const result = await uploadOnCloudinary(file.buffer, {
+        folder: "products",
+        resource_type: file.mimetype.startsWith("video") ? "video" : "image",
+      });
+      return {
+        public_id: result.public_id,
+        url: result.secure_url,
+        type: file.mimetype.startsWith("video") ? "video" : "photo",
+      };
+    })
+  );
+
+  const product = await Product.create({
+    title,
+    price,
+    quantity,
+    category,
+    thumbnail: media[0] || null,
+    media,
+    seller: sellerId,
+  });
+
+  sendResponse(res, {
+    statusCode: httpStatus.CREATED,
+    success: true,
+    message: "Product added successfully",
+    data: product,
   });
 });
