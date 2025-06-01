@@ -1,10 +1,10 @@
-const crypto = require("crypto");
-const bcrypt = require("bcrypt");
-const { v4: uuidv4 } = require("uuid");
+import crypto from "crypto";
+import bcrypt from "bcryptjs";
+import { v4 as uuidv4 } from "uuid";
 import { v2 as cloudinary } from "cloudinary";
 
 // Generate a random OTP
-exports.generateOTP = () => {
+export const generateOTP = () => {
   const OTP_LENGTH = 6;
   const otp = Array.from({ length: OTP_LENGTH }, () =>
     crypto.randomInt(0, 9)
@@ -13,7 +13,7 @@ exports.generateOTP = () => {
 };
 
 //Generate unique ID
-exports.generateUniqueId = () => {
+export const generateUniqueId = () => {
   const timestamp = Date.now().toString(36); // Convert current timestamp to base36 string
   const randomPart = Math.random().toString(36).substr(2, 6); // Get 6 random characters
 
@@ -24,13 +24,13 @@ exports.generateUniqueId = () => {
 };
 
 //password hashing
-exports.hashPassword = async (newPassword) => {
+export const hashPassword = async (newPassword) => {
   const salt = await bcrypt.genSalt(Number.parseInt(10));
   const hashedPassword = await bcrypt.hash(newPassword, salt);
   return Promise.resolve(hashedPassword);
 };
 
-exports.uniqueTransactionId = () => {
+export const uniqueTransactionId = () => {
   return uuidv4().replace(/-/g, "").substr(0, 12).toUpperCase();
 };
 

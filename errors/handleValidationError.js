@@ -15,4 +15,4 @@ const handleValidationError = (err) => {
   };
 };
 
-module.exports =  handleValidationError;
+export default handleValidationError;
