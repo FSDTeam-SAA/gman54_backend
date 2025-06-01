@@ -1,9 +1,9 @@
-import catchAsync from "../utils/catchAsync";
-import sendResponse from "../utils/sendResponse";
-import { uploadOnCloudinary } from "../utils/cloudinary";
-import AppError from "../errors/AppError";
+import catchAsync from "../utils/catchAsync.js";
+import sendResponse from "../utils/sendResponse.js";
+import { uploadOnCloudinary } from "../utils/commonMethod.js";
+import AppError from "../errors/AppError.js";
 import httpStatus from "http-status";
-import { User } from "../models";
+import { User } from "./../model/user.model.js";
 
 // Get user profile
 export const getProfile = catchAsync(async (req, res) => {
