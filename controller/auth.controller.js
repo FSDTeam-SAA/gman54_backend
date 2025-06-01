@@ -1,11 +1,11 @@
-import AppError from "../errors/AppError";
-import { createToken, verifyToken } from "../utils/authToken";
-import catchAsync from "../utils/catchAsync";
-import { generateOTP } from "../utils/generateOTP";
+import AppError from "../errors/AppError.js";
+import { createToken, verifyToken } from "../utils/authToken.js";
+import catchAsync from "../utils/catchAsync.js";
+import { generateOTP } from "../utils/generateOTP.js";
 import httpStatus from "http-status";
-import sendResponse from "../utils/sendResponse";
-import { sendEmail } from "../utils/sendEmail";
-import { User } from "../model/user";
+import sendResponse from "../utils/sendResponse.js";
+import { sendEmail } from "../utils/sendEmail.js";
+import { User } from "./../model/user.model.js";
 
 export const register = catchAsync(async (req, res) => {
   const { name, email, password, phone, username } = req.body;
