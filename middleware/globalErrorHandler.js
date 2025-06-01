@@ -1,8 +1,7 @@
-// const config = require("../config/index.js");
-const AppError = require("../errors/AppError.js");
-const HandleCastError = require("../errors/HandleCastError.js");
-const handleDuplicateError = require("../errors/handleDuplicateError.js");
-const handleValidationError = require("../errors/handleValidationError.js");
+import handleValidationError from "../errors/handleValidationError.js";
+import HandleCastError from "../errors/HandleCastError.js";
+import handleDuplicateError from "../errors/handleDuplicateError.js";
+import AppError from "./../errors/AppError.js";
 
 const globalErrorHandler = (err, req, res, next) => {
   console.log({ GlobalError: err });
@@ -46,8 +45,8 @@ const globalErrorHandler = (err, req, res, next) => {
     message,
     errorSources,
     err,
-    stack:  err?.stack | null,
+    stack: err?.stack | null,
   });
 };
 
-module.exports = globalErrorHandler;
+export default globalErrorHandler;

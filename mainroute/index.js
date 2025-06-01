@@ -1,25 +1,15 @@
-const express = require('express')
-const router = express.Router()
-const authRoute = require("../route/auth.route")
+import express from "express";
+import authRoute from "../route/auth.route.js";
+import userRoute from "../route/user.route.js";
+import sellerRoute from "../route/seller.route.js";
+import adminRoute from "../route/admin.route.js";
 
+const router = express.Router();
 
+// Mounting the routes
+router.use("/auth", authRoute);
+router.use("/user", userRoute);
+router.use("/seller", sellerRoute);
+router.use("/admin", adminRoute);
 
-const moduleRoutes = [
-    {
-        path: "/auth",
-        route: authRoute
-    }
-
-
-]
-
-
-moduleRoutes.forEach((route) => {
-    if (route.middleware) {
-        router.use(route.path, ...route.middleware, route.route);
-    } else {
-        router.use(route.path, route.route);
-    }
-}
-)
-module.exports = router
+export default router;

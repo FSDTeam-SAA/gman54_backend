@@ -2,7 +2,7 @@ import catchAsync from "../utils/catchAsync.js";
 import sendResponse from "../utils/sendResponse.js";
 import AppError from "../errors/AppError.js";
 import httpStatus from "http-status";
-import { User } from "./../model/user.model";
+import { User } from "./../model/user.model.js";
 
 // Admin: Approve seller request
 export const approveSellerRequest = catchAsync(async (req, res) => {

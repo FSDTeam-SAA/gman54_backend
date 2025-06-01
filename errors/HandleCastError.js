@@ -14,4 +14,4 @@ const HandleCastError = (err) => {
   };
 };
 
-module.exports = HandleCastError;
+export default HandleCastError;

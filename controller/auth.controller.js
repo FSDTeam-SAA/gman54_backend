@@ -1,7 +1,7 @@
 import AppError from "../errors/AppError.js";
 import { createToken, verifyToken } from "../utils/authToken.js";
 import catchAsync from "../utils/catchAsync.js";
-import { generateOTP } from "../utils/generateOTP.js";
+import { generateOTP } from "../utils/commonMethod.js";
 import httpStatus from "http-status";
 import sendResponse from "../utils/sendResponse.js";
 import { sendEmail } from "../utils/sendEmail.js";

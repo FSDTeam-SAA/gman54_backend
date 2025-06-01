@@ -88,4 +88,4 @@ export const getAllCategories = catchAsync(async (req, res) => {
     message: "Farm categories fetched successfully",
     data: categories,
   });
-}
+});

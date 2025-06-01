@@ -19,4 +19,4 @@ const handleDuplicateError = (err) => {
   };
 };
 
-module.exports =  handleDuplicateError;
+export default handleDuplicateError;

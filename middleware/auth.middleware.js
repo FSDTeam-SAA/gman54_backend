@@ -1,18 +1,17 @@
-
-import jwt, { JwtPayload } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import httpStatus from "http-status";
-import AppError from "../errors/AppError";
-import { User } from "../model/user";
+import AppError from "../errors/AppError.js";
+import { User } from "./../model/user.model.js";
 
 export const protect = async (req, res, next) => {
   const token = req.headers.authorization?.split(" ")[1];
   if (!token) throw new AppError(httpStatus.NOT_FOUND, "Token not found");
 
   try {
-    const decoded = await jwt.verify(token, process.env.JWT_ACCESS_SECRET) ;
+    const decoded = await jwt.verify(token, process.env.JWT_ACCESS_SECRET);
     // console.log(decoded)
-    const user = await User.findById(decoded._id)
-    if (user && await User.isOTPVerified(user._id)) {
+    const user = await User.findById(decoded._id);
+    if (user && (await User.isOTPVerified(user._id))) {
       req.user = user;
     }
     next();
