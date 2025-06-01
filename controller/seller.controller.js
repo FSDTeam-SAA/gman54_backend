@@ -74,3 +74,18 @@ export const applySeller = catchAsync(async (req, res) => {
     data: user.sellerRequest,
   });
 });
+
+// All categories
+export const getAllCategories = catchAsync(async (req, res) => {
+  const categories = await FarmCategory.find().select("-__v");
+  if (!categories || categories.length === 0) {
+    throw new AppError(httpStatus.NOT_FOUND, "No farm categories found");
+  }
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Farm categories fetched successfully",
+    data: categories,
+  });
+}
