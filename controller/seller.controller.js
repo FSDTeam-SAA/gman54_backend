@@ -288,12 +288,13 @@ export const addProduct = catchAsync(async (req, res) => {
     thumbnail: media[0] || null,
     media,
     farm: farmId,
+    status: "pending",
   });
 
   sendResponse(res, {
     statusCode: httpStatus.CREATED,
     success: true,
-    message: "Product added successfully",
+    message: "Product added successfully and is pending admin approval",
     data: product,
   });
 });
