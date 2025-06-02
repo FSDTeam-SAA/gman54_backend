@@ -1,7 +1,13 @@
 import mongoose from "mongoose";
+import crypto from "crypto";
 
 const orderSchema = new mongoose.Schema(
   {
+    code: {
+      type: String,
+      unique: true,
+      default: () => crypto.randomInt(100000, 999999).toString(),
+    },
     customer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -36,4 +42,4 @@ const orderSchema = new mongoose.Schema(
   }
 );
 
-export const Order =  mongoose.model("Order", orderSchema);
+export const Order = mongoose.model("Order", orderSchema);
