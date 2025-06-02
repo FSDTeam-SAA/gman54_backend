@@ -1,9 +1,9 @@
 import mongoose, { Schema } from "mongoose";
 
-const farmCategorySchema = new Schema({
+const categorySchema = new Schema({
   name: { type: String, required: true, unique: true },
   description: { type: String },
   createdAt: { type: Date, default: Date.now },
 });
 
-export const FarmCategory = mongoose.model("FarmCategory", farmCategorySchema);
+export const Category = mongoose.model("Category", categorySchema);

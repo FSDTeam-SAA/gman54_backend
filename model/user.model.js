@@ -1,8 +1,14 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 
 const userSchema = new Schema(
   {
+    uniqueId: {
+      type: String,
+      unique: true,
+      default: () => crypto.randomInt(1000, 9999).toString(),
+    },
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, select: 0, required: true },
@@ -12,7 +18,7 @@ const userSchema = new Schema(
     role: {
       type: String,
       default: "user",
-      enum: ["user", "admin", "seller"],
+      enum: ["user", "admin", "seller", "both"],
     },
     avatar: {
       public_id: { type: String, default: "" },
