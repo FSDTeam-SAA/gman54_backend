@@ -29,7 +29,8 @@ const productSchema = new mongoose.Schema({
     required: true,
   },
   status: { type: String, enum: ["active", "pending"], default: "pending" },
-  date: { type: Date, default: Date.now },
+},{
+  timestamps: true,
 });
 
 export const Product = mongoose.model("Product", productSchema);

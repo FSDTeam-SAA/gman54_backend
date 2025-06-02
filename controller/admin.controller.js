@@ -30,13 +30,13 @@ export const getCategoriesList = catchAsync(async (req, res) => {
   const categories = await Category.find()
     .skip(skip)
     .limit(limit)
-    .sort({ date: -1 });
+    .sort({ createdAt: -1 });
   const total = await Category.countDocuments();
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    data: { categories, total, page, limit },
+    data: { categories, pagination: {total, page, limit, totalPage: Math.ceil(total/limit)} },
   });
 });
 
@@ -116,13 +116,13 @@ export const getRequestProducts = catchAsync(async (req, res) => {
     .populate("category", "name")
     .skip(skip)
     .limit(limit)
-    .sort({ date: -1 });
+    .sort({ createdAt: -1 });
   const total = await Product.countDocuments();
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    data: { products, total, page, limit },
+    data: { products, pagination: {total, page, limit, totalPage: Math.ceil(total/limit)} },
   });
 });
 
@@ -194,13 +194,13 @@ export const getBlogList = catchAsync(async (req, res) => {
   const limit = parseInt(req.query.limit) || 5;
   const skip = (page - 1) * limit;
 
-  const blogs = await Blog.find().skip(skip).limit(limit).sort({ date: -1 });
+  const blogs = await Blog.find().skip(skip).limit(limit).sort({ createdAt: -1 });
   const total = await Blog.countDocuments();
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    data: { blogs, total, page, limit },
+    data: { blogs, pagination: {total, page, limit, totalPage: Math.ceil(total/limit)} },
   });
 });
 
@@ -274,68 +274,60 @@ export const getSellerProfileRequests = catchAsync(async (req, res) => {
   const limit = parseInt(req.query.limit) || 5;
   const skip = (page - 1) * limit;
 
-  const users = await User.find({ "sellerRequest.status": "pending" })
-    .skip(skip)
-    .limit(limit)
-    .sort({ "sellerRequest.submittedAt": -1 });
-  const total = await User.countDocuments({
-    "sellerRequest.status": "pending",
-  });
+ const sellerRequest = await Farm.find( { status: "pending" } ).skip(page).limit(limit).populate("seller");
+ const total = await Farm.countDocuments({ status: "pending" });
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    data: { users, total, page, limit },
+    data: { sellerRequest, pagination: {total, page, limit, totalPage: Math.ceil(total/limit)} },
   });
 });
 
 // Approve Seller Request
 export const approveSellerRequest = catchAsync(async (req, res) => {
   const { requestId } = req.params;
-  const user = await User.findOne({ "sellerRequest._id": requestId });
-  if (!user) {
+  const farm = await Farm.findById(requestId).populate("seller");
+  if (!farm) {
     throw new AppError(httpStatus.NOT_FOUND, "Seller request not found");
   }
 
-  if (user.sellerRequest.status !== "pending") {
+  if (farm !== "pending") {
     throw new AppError(httpStatus.BAD_REQUEST, "Seller request is not pending");
   }
 
-  const farm = await Farm.create({
-    name: user.sellerRequest.farmName,
-    location: {},
-    seller: user._id,
-  });
+  farm.status = "approved";
 
-  if (user.role !== "seller") {
-    user.role = "seller";
+
+
+  if (farm.seller.role !== "seller") {
+    farm.seller.role = "seller";
+    await farm.seller.save();
   }
-  user.sellerRequest.status = "approved";
-  await user.save();
+  await farm.save();
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: "Seller request approved successfully",
-    data: { user, farm },
+    data: { farm },
   });
 });
 
 // Delete Seller Request
 export const deleteSellerRequest = catchAsync(async (req, res) => {
   const { requestId } = req.params;
-  const user = await User.findOne({ "sellerRequest._id": requestId });
-  if (!user) {
+  const farm = await Farm.findByIdAndDelete(requestId);
+  if (!farm) {
     throw new AppError(httpStatus.NOT_FOUND, "Seller request not found");
   }
 
-  user.sellerRequest = undefined;
-  await user.save();
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: "Seller request deleted successfully",
+    data: ""
   });
 });
 
@@ -362,24 +354,5 @@ export const updateProfile = catchAsync(async (req, res) => {
     success: true,
     message: "Profile updated successfully",
     data: user,
-  });
-});
-
-// Change Password (Stub, implement secure password hashing)
-export const changePassword = catchAsync(async (req, res) => {
-  const { currentPassword, newPassword } = req.body;
-  const user = await User.findById(req.user._id);
-  if (!user) {
-    throw new AppError(httpStatus.NOT_FOUND, "User not found");
-  }
-
-  // Add password comparison and hashing logic here
-  user.password = newPassword; // Replace with secure hashing
-  await user.save();
-
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "Password changed successfully",
   });
 });
