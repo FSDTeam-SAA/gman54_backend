@@ -30,19 +30,6 @@ const userSchema = new Schema(
       state: { type: String, default: "" },
       zipCode: { type: String, default: "" },
     },
-    sellerRequest: {
-      status: {
-        type: String,
-        enum: ["pending", "approved", "rejected"],
-        default: "pending",
-      },
-      farmName: { type: String },
-      farmImages: [{ public_id: String, url: String }],
-      farmVideos: [{ public_id: String, url: String }],
-      farmCategory: { type: Schema.Types.ObjectId, ref: "FarmCategory" },
-      description: { type: String },
-      submittedAt: { type: Date },
-    },
     verificationInfo: {
       verified: { type: Boolean, default: false },
       token: { type: String, default: "" },

@@ -2,6 +2,11 @@ import mongoose from "mongoose";
 import crypto from "crypto";
 
 const farmSchema = new mongoose.Schema({
+  status: {
+    type: String,
+    enum: ['pending', 'approved', 'rejected'],
+    default: 'pending',
+  },
   code: {
     type: String,
     unique: true,
@@ -17,15 +22,18 @@ const farmSchema = new mongoose.Schema({
     state: String,
     zipCode: String,
   },
+  description: {
+    type: String,
+  },
+  images: [{ public_id: String, url: String }],
+  videos: [{ public_id: String, url: String }],
   seller: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: true,
   },
-  date: {
-    type: Date,
-    default: Date.now,
-  },
+},{
+  timestamps: true,
 });
 
 export const Farm = mongoose.model("Farm", farmSchema);

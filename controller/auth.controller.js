@@ -8,7 +8,7 @@ import { sendEmail } from "../utils/sendEmail.js";
 import { User } from "./../model/user.model.js";
 
 export const register = catchAsync(async (req, res) => {
-  const { name, email, password, phone, username } = req.body;
+  const { name, email, password, phone, username,role } = req.body;
   if (!name || !email || !password) {
     throw new AppError(httpStatus.FORBIDDEN, "Please fill in all fields");
   }
@@ -32,6 +32,10 @@ export const register = catchAsync(async (req, res) => {
     username: generatedUsername,
     verificationInfo: { token: otptoken },
   });
+  if(role === 'seller'){
+    user.role = role
+    await user.save()
+  }
   await sendEmail(user.email, "Registerd Account", `Your OTP is ${otp}`);
   // create token and sent to the client
 
@@ -135,21 +139,6 @@ export const login = catchAsync(async (req, res) => {
   });
 });
 
-export const UserData = catchAsync(async (req, res) => {
-  let ticket;
-  if (req.user?.role !== "admin" && req.user?.role !== "driver") {
-    ticket = await Ticket.find({
-      userId: req.user?._id,
-      status: { $in: ["pending", "running"] },
-    }).select("-avaiableSeat");
-  }
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "User Data Fetch successfully",
-    data: { user: req.user, ticket },
-  });
-});
 
 export const forgetPassword = catchAsync(async (req, res) => {
   const { email } = req.body;

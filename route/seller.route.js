@@ -1,7 +1,7 @@
 import express from "express";
 import {
   applySellerOrCreateFarm,
-  getAllCategories,
+  // getAllCategories,
   getDashboardOverview,
   getSellReport,
   getNewProductsReport,
@@ -25,7 +25,7 @@ const router = express.Router();
 
 // Become a seller
 router.post("/apply", protect, upload.array("media"), applySellerOrCreateFarm);
-router.get("/categories", protect, getAllCategories);
+// router.get("/categories", protect, getAllCategories);
 
 // Dashboard and Product Management
 router.get("/dashboard", protect, getDashboardOverview);

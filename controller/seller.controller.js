@@ -40,66 +40,44 @@ export const applySellerOrCreateFarm = catchAsync(async (req, res) => {
     }
   }
 
-  if (user.role === "seller") {
-    user.sellerRequest = {
-      status: "pending",
-      farmName,
-      farmImages: images,
-      farmVideos: videos,
+
+  const farm = await Farm.findOne({ user: user._id });
+  if (!farm) {
+    const newFarm = await Farm.create({
+      seller: user._id,
+      name: farmName,
       description,
-      submittedAt: new Date(),
-    };
+      images,
+      videos,
+    });
+    user.farm = newFarm._id;
     await user.save();
-    sendResponse(res, {
+    return sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
-      message: "Farm request submitted successfully. Awaiting admin approval.",
-      data: user.sellerRequest,
+      message:
+        "Seller application submitted successfully. Awaiting admin approval.",
+      data: newFarm,
     });
-    return;
   }
 
-  if (user.sellerRequest?.status === "pending") {
-    throw new AppError(
-      httpStatus.BAD_REQUEST,
-      "You already have a pending seller or farm request"
-    );
+  if (farm && farm.status === "pending") {
+    farm.images = images
+    farm.videos = videos
+    farm.name = farmName
+    farm.description = description
+    await farm.save();
+
   }
-
-  user.sellerRequest = {
-    status: "pending",
-    farmName,
-    farmImages: images,
-    farmVideos: videos,
-    description,
-    submittedAt: new Date(),
-  };
-
-  await user.save();
-
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message:
       "Seller application submitted successfully. Awaiting admin approval.",
-    data: user.sellerRequest,
+    data: farm,
   });
 });
 
-// All categories
-export const getAllCategories = catchAsync(async (req, res) => {
-  const categories = await Farm.find().select("-__v");
-  if (!categories || categories.length === 0) {
-    throw new AppError(httpStatus.NOT_FOUND, "No farm categories found");
-  }
-
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "Farm categories fetched successfully",
-    data: categories,
-  });
-});
 
 // Dashboard overview
 export const getDashboardOverview = catchAsync(async (req, res) => {
@@ -357,7 +335,6 @@ export const deleteProduct = catchAsync(async (req, res) => {
 
   const product = await Product.findOneAndDelete({
     _id: productId,
-    farm: { $in: await Farm.find({ seller: req.user._id }).distinct("_id") },
   });
   if (!product) {
     throw new AppError(

@@ -5,8 +5,21 @@ import mongoose from "mongoose";
 import cookieParser from "cookie-parser";
 import jwt from "jsonwebtoken";
 import router from "./mainroute/index.js";
+import {createServer } from "http";
+import { Server } from "socket.io";
+
+import globalErrorHandler from "./middleware/globalErrorHandler.js";
+import notFound from "./middleware/notFound.js";
+
 
 const app = express();
+const server = createServer(app);
+export const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+  }
+  });
 
 app.use(
   cors({
@@ -19,6 +32,7 @@ app.use(
 app.use(express.json({ limit: "50mb" }));
 app.use(cookieParser());
 
+
 // Mount the main router
 app.use("/api/v1", router);
 
@@ -27,13 +41,28 @@ app.get("/", (req, res) => {
   res.send("Server is running...!!");
 });
 
-import globalErrorHandler from "./middleware/globalErrorHandler.js";
-import notFound from "./middleware/notFound.js";
 app.use(globalErrorHandler);
 app.use(notFound);
 
+// WebSocket connection
+io.on('connection', (socket) => {
+    console.log('A client connected:', socket.id);
+
+    // Join user-specific room for notifications
+    socket.on('joinChatRoom', (userId) => {
+        if (userId) {
+            socket.join(`chat_${userId}`);
+            console.log(`Client ${socket.id} joined user room: ${userId}`);
+        }
+    });
+
+    socket.on('disconnect', () => {
+        console.log('Client disconnected:', socket.id);
+    });
+});
+
 const PORT = process.env.PORT || 5000;
-const server = app.listen(PORT, async () => {
+server.listen(PORT, async () => {
   console.log(`Server is running on port ${PORT}`);
 
   try {
@@ -45,12 +74,3 @@ const server = app.listen(PORT, async () => {
   }
 });
 
-process.on("uncaughtException", (err) => {
-  console.error("Uncaught Exception:", err);
-  server.close(() => process.exit(1));
-});
-
-process.on("unhandledRejection", (reason, promise) => {
-  console.error("Unhandled Rejection at:", promise, "reason:", reason);
-  server.close(() => process.exit(1));
-});
