@@ -36,7 +36,10 @@ export const getCategoriesList = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    data: { categories, pagination: {total, page, limit, totalPage: Math.ceil(total/limit)} },
+    data: {
+      categories,
+      pagination: { total, page, limit, totalPage: Math.ceil(total / limit) },
+    },
   });
 });
 
@@ -122,7 +125,10 @@ export const getRequestProducts = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    data: { products, pagination: {total, page, limit, totalPage: Math.ceil(total/limit)} },
+    data: {
+      products,
+      pagination: { total, page, limit, totalPage: Math.ceil(total / limit) },
+    },
   });
 });
 
@@ -194,13 +200,19 @@ export const getBlogList = catchAsync(async (req, res) => {
   const limit = parseInt(req.query.limit) || 5;
   const skip = (page - 1) * limit;
 
-  const blogs = await Blog.find().skip(skip).limit(limit).sort({ createdAt: -1 });
+  const blogs = await Blog.find()
+    .skip(skip)
+    .limit(limit)
+    .sort({ createdAt: -1 });
   const total = await Blog.countDocuments();
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    data: { blogs, pagination: {total, page, limit, totalPage: Math.ceil(total/limit)} },
+    data: {
+      blogs,
+      pagination: { total, page, limit, totalPage: Math.ceil(total / limit) },
+    },
   });
 });
 
@@ -274,13 +286,19 @@ export const getSellerProfileRequests = catchAsync(async (req, res) => {
   const limit = parseInt(req.query.limit) || 5;
   const skip = (page - 1) * limit;
 
- const sellerRequest = await Farm.find( { status: "pending" } ).skip(page).limit(limit).populate("seller");
- const total = await Farm.countDocuments({ status: "pending" });
+  const sellerRequest = await Farm.find({ status: "pending" })
+    .skip(page)
+    .limit(limit)
+    .populate("seller");
+  const total = await Farm.countDocuments({ status: "pending" });
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    data: { sellerRequest, pagination: {total, page, limit, totalPage: Math.ceil(total/limit)} },
+    data: {
+      sellerRequest,
+      pagination: { total, page, limit, totalPage: Math.ceil(total / limit) },
+    },
   });
 });
 
@@ -297,8 +315,6 @@ export const approveSellerRequest = catchAsync(async (req, res) => {
   }
 
   farm.status = "approved";
-
-
 
   if (farm.seller.role !== "seller") {
     farm.seller.role = "seller";
@@ -322,12 +338,11 @@ export const deleteSellerRequest = catchAsync(async (req, res) => {
     throw new AppError(httpStatus.NOT_FOUND, "Seller request not found");
   }
 
-
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: "Seller request deleted successfully",
-    data: ""
+    data: "",
   });
 });
 
@@ -354,5 +369,42 @@ export const updateProfile = catchAsync(async (req, res) => {
     success: true,
     message: "Profile updated successfully",
     data: user,
+  });
+});
+
+// Change Password
+export const changePassword = catchAsync(async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+  if (!oldPassword || !newPassword) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "Old password and new password are required"
+    );
+  }
+  if (oldPassword === newPassword) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "Old password and new password cannot be same"
+    );
+  }
+  const user = await User.findById(req.user._id).select("+password");
+
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, "User not found");
+  }
+
+  const isMatch = await user.isPasswordMatched(oldPassword, user.password);
+  if (!isMatch) {
+    throw new AppError(httpStatus.UNAUTHORIZED, "Old password is incorrect");
+  }
+
+  user.password = newPassword;
+  await user.save();
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Password changed successfully",
+    data: "",
   });
 });
