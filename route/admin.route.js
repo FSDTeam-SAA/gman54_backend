@@ -4,6 +4,7 @@ import {
   getCategoriesList,
   addCategory,
   deleteCategory,
+  updateCategory,
   getRequestProducts,
   approveProductRequest,
   deleteProductRequest,
@@ -29,6 +30,7 @@ router.get("/overview", protect, getAdminOverview);
 // Categories
 router.get("/categories", protect, getCategoriesList);
 router.post("/categories", protect, addCategory);
+router.patch("/categories/:id", protect, updateCategory);
 router.delete("/categories/:id", protect, deleteCategory);
 
 // Request Product
