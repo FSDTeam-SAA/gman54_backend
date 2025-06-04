@@ -40,7 +40,6 @@ export const applySellerOrCreateFarm = catchAsync(async (req, res) => {
     }
   }
 
-
   const farm = await Farm.findOne({ user: user._id });
   if (!farm) {
     const newFarm = await Farm.create({
@@ -62,12 +61,11 @@ export const applySellerOrCreateFarm = catchAsync(async (req, res) => {
   }
 
   if (farm && farm.status === "pending") {
-    farm.images = images
-    farm.videos = videos
-    farm.name = farmName
-    farm.description = description
+    farm.images = images;
+    farm.videos = videos;
+    farm.name = farmName;
+    farm.description = description;
     await farm.save();
-
   }
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -77,7 +75,6 @@ export const applySellerOrCreateFarm = catchAsync(async (req, res) => {
     data: farm,
   });
 });
-
 
 // Dashboard overview
 export const getDashboardOverview = catchAsync(async (req, res) => {
@@ -237,33 +234,53 @@ export const getPendingProducts = catchAsync(async (req, res) => {
 export const addProduct = catchAsync(async (req, res) => {
   const sellerId = req.user._id;
   const { title, price, quantity, category, farmId } = req.body;
-  const files = req.files || [];
+
+  let files = [];
+  if (req.files) {
+    if (Array.isArray(req.files.media)) files = files.concat(req.files.media);
+    if (Array.isArray(req.files.thumbnail))
+      files = files.concat(req.files.thumbnail);
+  }
+
+  console.log("Files to upload:", files);
 
   const farm = await Farm.findOne({ _id: farmId, seller: sellerId });
   if (!farm) {
     throw new AppError(httpStatus.NOT_FOUND, "Farm not found or unauthorized");
   }
 
-  const media = await Promise.all(
-    files.map(async (file) => {
-      const result = await uploadOnCloudinary(file.buffer, {
-        folder: "products",
-        resource_type: file.mimetype.startsWith("video") ? "video" : "image",
-      });
-      return {
-        public_id: result.public_id,
-        url: result.secure_url,
-        type: file.mimetype.startsWith("video") ? "video" : "photo",
-      };
-    })
-  );
+  let media = [];
+  if (files.length > 0) {
+    media = await Promise.all(
+      files.map(async (file) => {
+        const uploadSource = file.buffer || file.path;
+        const result = await uploadOnCloudinary(uploadSource, {
+          folder: "products",
+          resource_type:
+            file.mimetype && file.mimetype.startsWith("video")
+              ? "video"
+              : "image",
+        });
+        return {
+          public_id: result.public_id,
+          url: result.secure_url,
+          type:
+            file.mimetype && file.mimetype.startsWith("video")
+              ? "video"
+              : "photo",
+        };
+      })
+    );
+  }
+
+  const thumbnail = media.length > 0 ? media[0] : null;
 
   const product = await Product.create({
     title,
     price,
     quantity,
     category,
-    thumbnail: media[0] || null,
+    thumbnail,
     media,
     farm: farmId,
     status: "pending",
@@ -281,7 +298,13 @@ export const addProduct = catchAsync(async (req, res) => {
 export const updateProduct = catchAsync(async (req, res) => {
   const { productId } = req.params;
   const { title, price, quantity, category, farmId } = req.body;
-  const files = req.files || [];
+
+  let files = [];
+  if (req.files) {
+    if (Array.isArray(req.files.media)) files = files.concat(req.files.media);
+    if (Array.isArray(req.files.thumbnail))
+      files = files.concat(req.files.thumbnail);
+  }
 
   const product = await Product.findById(productId).populate("farm");
   if (!product || product.farm.seller.toString() !== req.user._id.toString()) {
@@ -304,14 +327,21 @@ export const updateProduct = catchAsync(async (req, res) => {
   if (files.length > 0) {
     const media = await Promise.all(
       files.map(async (file) => {
-        const result = await uploadOnCloudinary(file.buffer, {
+        const uploadSource = file.buffer || file.path;
+        const result = await uploadOnCloudinary(uploadSource, {
           folder: "products",
-          resource_type: file.mimetype.startsWith("video") ? "video" : "image",
+          resource_type:
+            file.mimetype && file.mimetype.startsWith("video")
+              ? "video"
+              : "image",
         });
         return {
           public_id: result.public_id,
           url: result.secure_url,
-          type: file.mimetype.startsWith("video") ? "video" : "photo",
+          type:
+            file.mimetype && file.mimetype.startsWith("video")
+              ? "video"
+              : "photo",
         };
       })
     );
