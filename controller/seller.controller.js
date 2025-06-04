@@ -7,6 +7,7 @@ import { User } from "./../model/user.model.js";
 import { Farm } from "./../model/farm.model.js";
 import { Product } from "./../model/product.model.js";
 import { Order } from "./../model/order.model.js";
+import { Category } from "../model/category.model.js";
 
 // Apply to become a seller or create a farm
 export const applySellerOrCreateFarm = catchAsync(async (req, res) => {
@@ -377,5 +378,19 @@ export const deleteProduct = catchAsync(async (req, res) => {
     statusCode: httpStatus.OK,
     success: true,
     message: "Product deleted successfully",
+  });
+});
+
+// Get all categories
+export const getAllCategories = catchAsync(async (req, res) => {
+  const categories = await Category.find({}).sort({ name: 1 });
+  if (!categories || categories.length === 0) {
+    throw new AppError(httpStatus.NOT_FOUND, "No categories found");
+  }
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    data: categories,
   });
 });
