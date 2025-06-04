@@ -286,17 +286,20 @@ export const getSellerProfileRequests = catchAsync(async (req, res) => {
   const limit = parseInt(req.query.limit) || 5;
   const skip = (page - 1) * limit;
 
-  const sellerRequest = await Farm.find({ status: "pending" })
-    .skip(page)
+  // Fetch all farm requests with status "pending", regardless of user role
+  const sellerRequests = await Farm.find({ status: "pending" })
+    .skip(skip)
     .limit(limit)
-    .populate("seller");
+    .populate("seller")
+    .sort({ createdAt: -1 });
+
   const total = await Farm.countDocuments({ status: "pending" });
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     data: {
-      sellerRequest,
+      sellerRequests,
       pagination: { total, page, limit, totalPage: Math.ceil(total / limit) },
     },
   });
@@ -310,7 +313,7 @@ export const approveSellerRequest = catchAsync(async (req, res) => {
     throw new AppError(httpStatus.NOT_FOUND, "Seller request not found");
   }
 
-  if (farm !== "pending") {
+  if (farm.status !== "pending") {
     throw new AppError(httpStatus.BAD_REQUEST, "Seller request is not pending");
   }
 
