@@ -14,7 +14,7 @@ import {
 } from "../controller/seller.controller.js";
 
 import {
-  getOrderHistory,
+  getFarmOrders,
   updateOrderStatus,
 } from "../controller/order.controller.js";
 
@@ -49,7 +49,7 @@ router.patch(
 router.delete("/products/:productId", protect, deleteProduct);
 
 // Order Management
-router.get("/order-history", protect, getOrderHistory);
+router.get("/order-history", protect, getFarmOrders);
 router.patch("/order/:orderId/status", protect, updateOrderStatus);
 
 export default router;

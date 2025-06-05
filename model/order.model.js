@@ -8,6 +8,11 @@ const orderSchema = new mongoose.Schema(
       unique: true,
       default: () => crypto.randomInt(100000, 999999).toString(),
     },
+    farm: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Farm",
+      required: true,
+    },
     customer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -18,10 +23,9 @@ const orderSchema = new mongoose.Schema(
       ref: "Product",
       required: true,
     },
-    orderId: {
-      type: String,
+    quantity: {
+      type: Number,
       required: true,
-      unique: true,
     },
     totalPrice: {
       type: Number,
@@ -33,9 +37,17 @@ const orderSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["pending", "processing", "shipping", "completed"],
+      enum: ["pending", "processing", "shipping", "completed","cancelled"],
       default: "pending",
     },
+    paymentStatus: {
+      type: String,
+      enum: ["paid", "unpaid"],
+      default: "unpaid",
+    },
+    transectionId: {
+      type: String,
+    }
   },
   {
     timestamps: true,

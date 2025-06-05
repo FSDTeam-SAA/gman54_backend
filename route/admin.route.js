@@ -22,6 +22,7 @@ import {
 } from "../controller/admin.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
 import upload from "../middleware/multer.middleware.js";
+import { getOrdersWithAdminRevenue, getUserWiseOrderStatusSummary } from "../controller/user.controller.js";
 
 const router = express.Router();
 
@@ -69,5 +70,8 @@ router.get(
   getSpecificSellerProfileRequest
 );
 router.delete("/seller-requests/:requestId", protect, deleteSellerRequest);
+
+router.get("/user-profile",getUserWiseOrderStatusSummary);
+router.get("/admin-reveneu",getOrdersWithAdminRevenue)
 
 export default router;
