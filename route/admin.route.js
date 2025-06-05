@@ -19,8 +19,6 @@ import {
   getSpecificSellerProfileRequest,
   approveSellerRequest,
   deleteSellerRequest,
-  updateProfile,
-  changePassword,
 } from "../controller/admin.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
 import upload from "../middleware/multer.middleware.js";
@@ -71,9 +69,5 @@ router.get(
   getSpecificSellerProfileRequest
 );
 router.delete("/seller-requests/:requestId", protect, deleteSellerRequest);
-
-// Setting
-router.put("/profile", protect, updateProfile);
-router.put("/change-password", protect, changePassword);
 
 export default router;
