@@ -11,6 +11,7 @@ import {
   uploadBannerAds,
   getBlogList,
   addBlog,
+  updateBlog,
   deleteBlog,
   getSellerProfiles,
   getSellerProfileRequests,
@@ -48,6 +49,7 @@ router.post("/banner-ads", protect, upload.array("banners"), uploadBannerAds);
 // Blog Management
 router.get("/blogs", protect, getBlogList);
 router.post("/blogs", protect, upload.single("thumbnail"), addBlog);
+router.patch("/blogs/:id", protect, upload.single("thumbnail"), updateBlog);
 router.delete("/blogs/:id", protect, deleteBlog);
 
 // Seller Profiles
