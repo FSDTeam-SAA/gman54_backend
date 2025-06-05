@@ -1,5 +1,9 @@
 import express from "express";
-import { getProfile, updateProfile } from "../controller/user.controller.js";
+import {
+  getProfile,
+  updateProfile,
+  changePassword,
+} from "../controller/user.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
 import upload from "../middleware/multer.middleware.js";
 
@@ -12,5 +16,6 @@ router.patch(
   upload.single("avatar"),
   updateProfile
 );
+router.post("/change-password", protect, changePassword);
 
 export default router;
