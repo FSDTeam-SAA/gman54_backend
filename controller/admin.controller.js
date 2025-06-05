@@ -228,8 +228,8 @@ export const addBlog = catchAsync(async (req, res) => {
   }
 
   let thumbnail = null;
-  if (req.files && req.files.length > 0) {
-    const result = await uploadOnCloudinary(req.files[0].buffer, {
+  if (req.file) {
+    const result = await uploadOnCloudinary(req.file.buffer, {
       resource_type: "image",
       folder: "blogs",
     });
@@ -242,6 +242,48 @@ export const addBlog = catchAsync(async (req, res) => {
     statusCode: httpStatus.CREATED,
     success: true,
     message: "Blog added successfully",
+    data: blog,
+  });
+});
+
+// Update Blog
+export const updateBlog = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const { blogName, description } = req.body;
+
+  if (!blogName || !description) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "Please provide blog name and description"
+    );
+  }
+
+  const updateData = { blogName, description };
+
+  if (req.file) {
+    const result = await uploadOnCloudinary(req.file.buffer, {
+      resource_type: "image",
+      folder: "blogs",
+    });
+    updateData.thumbnail = {
+      public_id: result.public_id,
+      url: result.secure_url,
+    };
+  }
+
+  const blog = await Blog.findByIdAndUpdate(id, updateData, {
+    new: true,
+    runValidators: true,
+  });
+
+  if (!blog) {
+    throw new AppError(httpStatus.NOT_FOUND, "Blog not found");
+  }
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Blog updated successfully",
     data: blog,
   });
 });
