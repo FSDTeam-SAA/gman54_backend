@@ -32,6 +32,14 @@ const farmSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
+    review: [{    
+      text: String,
+      rating: Number,
+      user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        },}
+    ],
 },{
   timestamps: true,
 });

@@ -394,3 +394,45 @@ export const getAllCategories = catchAsync(async (req, res) => {
     data: categories,
   });
 });
+
+export const getAllFarm = catchAsync(async (req, res) => {
+  const farm = await Farm.find({ status: "approved"}).sort({ createdAt: -1 });
+  if (!farm || farm.length === 0) {
+    throw new AppError(httpStatus.NOT_FOUND, "No farm found");
+  }
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Farm found",
+    data: farm,
+  });
+});
+
+export const getFarmById = catchAsync(async (req, res) => {
+  const { farmId } = req.params;
+  const farm = await Farm.findOne({ _id: farmId });
+  if (!farm) {
+    throw new AppError(httpStatus.NOT_FOUND, "Farm not found");
+  }
+  const product = await Product.find({ farm: farmId, status: "active" });
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Farm found",
+    data: { farm, product },
+  });
+});
+
+export const getProductByCategory = catchAsync(async (req, res) => {
+  const { categoryId } = req.params;
+  const product = await Product.find({ category: categoryId , status: "active"}).sort({ createdAt: -1 });
+  if (!product || product.length === 0) {
+    throw new AppError(httpStatus.NOT_FOUND, "No product found");
+  }
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Product found",
+    data: product,
+  });
+});

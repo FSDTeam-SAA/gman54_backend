@@ -5,6 +5,8 @@ import AppError from "../errors/AppError.js";
 import sendResponse from "../utils/sendResponse.js";
 import catchAsync from "../utils/catchAsync.js";
 import { Order } from "../model/order.model.js";
+import { Farm } from "../model/farm.model.js";
+import { Product } from "../model/product.model.js";
 
 // Get user profile
 export const getProfile = catchAsync(async (req, res) => {
@@ -276,5 +278,46 @@ export const getOrdersWithAdminRevenue = catchAsync(
     });
   }
 );
+
+export const writeReview = catchAsync (async (req, res) =>{
+  const { review, rating,product, farm } = req.body;
+ const userId = req.user?._id; // assuming user is authenticated
+
+  if (!review || !rating || (!product && !farm)) {
+    throw new AppError(400, "Review, rating, and either product or farm are required");
+  }
+
+  const reviewData = {
+    text: review,
+    rating: Number(rating),
+    user: userId,
+  };
+
+  if (farm) {
+    const farmDoc = await Farm.findById(farm);
+    if (!farmDoc) {
+      throw new AppError(404, "Farm not found");
+    }
+    farmDoc.review.push(reviewData);
+    await farmDoc.save();
+  } else if (product) {
+    const productDoc = await Product.findById(product);
+    if (!productDoc) {
+      throw new AppError(404, "Product not found");
+    }
+    productDoc.review.push(reviewData);
+    await productDoc.save();
+  }
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Review submitted successfully",
+  });
+
+})
+
+
+
 
 

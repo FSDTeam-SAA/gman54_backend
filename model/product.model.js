@@ -28,6 +28,14 @@ const productSchema = new mongoose.Schema({
     ref: "Farm",
     required: true,
   },
+  review: [{    
+    text: String,
+    rating: Number,
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      },}
+  ],
   status: { type: String, enum: ["active", "pending"], default: "pending" },
 },{
   timestamps: true,
