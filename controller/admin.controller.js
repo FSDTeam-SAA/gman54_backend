@@ -322,6 +322,22 @@ export const getSellerProfiles = catchAsync(async (req, res) => {
   });
 });
 
+// Get specific Seller Profile
+export const getSellerProfile = catchAsync(async (req, res) => {
+  const { sellerId } = req.params;
+  const seller = await User.findById(sellerId);
+
+  if (!seller || seller.role !== "seller") {
+    throw new AppError(httpStatus.NOT_FOUND, "Seller not found");
+  }
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    data: seller,
+  });
+});
+
 // Seller Profile Request
 export const getSellerProfileRequests = catchAsync(async (req, res) => {
   const page = parseInt(req.query.page) || 1;
@@ -344,6 +360,21 @@ export const getSellerProfileRequests = catchAsync(async (req, res) => {
       sellerRequests,
       pagination: { total, page, limit, totalPage: Math.ceil(total / limit) },
     },
+  });
+});
+
+// Get specific Seller Profile Request
+export const getSpecificSellerProfileRequest = catchAsync(async (req, res) => {
+  const { requestId } = req.params;
+  const farm = await Farm.findById(requestId).populate("seller");
+  if (!farm || farm.status !== "pending") {
+    throw new AppError(httpStatus.NOT_FOUND, "Seller request not found");
+  }
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    data: farm,
   });
 });
 

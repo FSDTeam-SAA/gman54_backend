@@ -14,7 +14,9 @@ import {
   updateBlog,
   deleteBlog,
   getSellerProfiles,
+  getSellerProfile,
   getSellerProfileRequests,
+  getSpecificSellerProfileRequest,
   approveSellerRequest,
   deleteSellerRequest,
   updateProfile,
@@ -54,6 +56,7 @@ router.delete("/blogs/:id", protect, deleteBlog);
 
 // Seller Profiles
 router.get("/sellers", protect, getSellerProfiles);
+router.get("/sellers/:sellerId", protect, getSellerProfile);
 
 // Seller Profile Requests
 router.get("/seller-requests", protect, getSellerProfileRequests);
@@ -61,6 +64,11 @@ router.patch(
   "/seller-requests/:requestId/approve",
   protect,
   approveSellerRequest
+);
+router.get(
+  "/seller-requests/:requestId",
+  protect,
+  getSpecificSellerProfileRequest
 );
 router.delete("/seller-requests/:requestId", protect, deleteSellerRequest);
 
