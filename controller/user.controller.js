@@ -96,195 +96,194 @@ export const changePassword = catchAsync(async (req, res) => {
   });
 });
 
-
-export const getUserWiseOrderStatusSummary = catchAsync(
-  async (req, res) => {
- const summary = await Order.aggregate([
-      {
-        $group: {
-          _id: {
-            user: "$customer",
-            status: "$status",
-          },
-          count: { $sum: 1 },
+// Get user-wise order status summary
+export const getUserWiseOrderStatusSummary = catchAsync(async (req, res) => {
+  const summary = await Order.aggregate([
+    {
+      $group: {
+        _id: {
+          user: "$customer",
+          status: "$status",
         },
+        count: { $sum: 1 },
       },
-      {
-        $group: {
-          _id: "$_id.user",
-          statusCounts: {
-            $push: {
-              status: "$_id.status",
-              count: "$count",
-            },
+    },
+    {
+      $group: {
+        _id: "$_id.user",
+        statusCounts: {
+          $push: {
+            status: "$_id.status",
+            count: "$count",
           },
         },
       },
-      {
-        $project: {
-          user: "$_id",
-          _id: 0,
-          statusCounts: 1,
-          pending: {
-            $sum: {
-              $map: {
-                input: {
-                  $filter: {
-                    input: "$statusCounts",
-                    as: "item",
-                    cond: { $eq: ["$$item.status", "pending"] },
-                  },
+    },
+    {
+      $project: {
+        user: "$_id",
+        _id: 0,
+        statusCounts: 1,
+        pending: {
+          $sum: {
+            $map: {
+              input: {
+                $filter: {
+                  input: "$statusCounts",
+                  as: "item",
+                  cond: { $eq: ["$$item.status", "pending"] },
                 },
-                as: "item",
-                in: "$$item.count",
               },
+              as: "item",
+              in: "$$item.count",
             },
           },
-          completed: {
-            $sum: {
-              $map: {
-                input: {
-                  $filter: {
-                    input: "$statusCounts",
-                    as: "item",
-                    cond: { $eq: ["$$item.status", "completed"] },
-                  },
+        },
+        completed: {
+          $sum: {
+            $map: {
+              input: {
+                $filter: {
+                  input: "$statusCounts",
+                  as: "item",
+                  cond: { $eq: ["$$item.status", "completed"] },
                 },
-                as: "item",
-                in: "$$item.count",
               },
+              as: "item",
+              in: "$$item.count",
             },
           },
-                    shipping: {
-            $sum: {
-              $map: {
-                input: {
-                  $filter: {
-                    input: "$statusCounts",
-                    as: "item",
-                    cond: { $eq: ["$$item.status", "shipping"] }
-                  }
+        },
+        shipping: {
+          $sum: {
+            $map: {
+              input: {
+                $filter: {
+                  input: "$statusCounts",
+                  as: "item",
+                  cond: { $eq: ["$$item.status", "shipping"] },
                 },
-                as: "item",
-                in: "$$item.count"
-              }
-            }
-          },
-          cancelled: {
-            $sum: {
-              $map: {
-                input: {
-                  $filter: {
-                    input: "$statusCounts",
-                    as: "item",
-                    cond: { $eq: ["$$item.status", "cancelled"] },
-                  },
-                },
-                as: "item",
-                in: "$$item.count",
               },
+              as: "item",
+              in: "$$item.count",
+            },
+          },
+        },
+        cancelled: {
+          $sum: {
+            $map: {
+              input: {
+                $filter: {
+                  input: "$statusCounts",
+                  as: "item",
+                  cond: { $eq: ["$$item.status", "cancelled"] },
+                },
+              },
+              as: "item",
+              in: "$$item.count",
             },
           },
         },
       },
-      {
-        $lookup: {
-          from: "users", // collection name in MongoDB
-          localField: "user",
-          foreignField: "_id",
-          as: "user",
+    },
+    {
+      $lookup: {
+        from: "users", // collection name in MongoDB
+        localField: "user",
+        foreignField: "_id",
+        as: "user",
+      },
+    },
+    {
+      $unwind: "$user",
+    },
+    {
+      $project: {
+        user: {
+          _id: 1,
+          name: 1,
+          email: 1,
+          phone: 1,
+        },
+        pending: 1,
+        completed: 1,
+        shipping: 1,
+        cancelled: 1,
+      },
+    },
+  ]);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "User-wise order status summary fetched successfully",
+    data: summary,
+  });
+});
+
+// Get all orders with admin revenue (4.99% of total price)
+export const getOrdersWithAdminRevenue = catchAsync(async (req, res) => {
+  const ordersWithRevenue = await Order.aggregate([
+    // 1) Lookup Farm data
+    {
+      $lookup: {
+        from: "farms", // MongoDB collection name for Farm
+        localField: "farm",
+        foreignField: "_id",
+        as: "farm",
+      },
+    },
+    { $unwind: "$farm" },
+
+    // 2) Lookup Product data
+    {
+      $lookup: {
+        from: "products", // MongoDB collection name for Product
+        localField: "product",
+        foreignField: "_id",
+        as: "product",
+      },
+    },
+    { $unwind: "$product" },
+
+    // 3) Project only the fields we need + compute adminRevenue = totalPrice * 4.99%
+    {
+      $project: {
+        _id: 0,
+        farm: {
+          _id: "$farm._id",
+          name: "$farm.name",
+        },
+        product: {
+          _id: "$product._id",
+          name: "$product.title",
+        },
+        adminRevenue: {
+          // 4.99% = 0.0499
+          $round: [{ $multiply: ["$totalPrice", 0.0499] }, 2],
         },
       },
-      {
-        $unwind: "$user",
-      },
-      {
-        $project: {
-          user: {
-            _id: 1,
-            name: 1,
-            email: 1,
-            phone: 1,
-          },
-          pending: 1,
-          completed: 1,
-          shipping: 1,
-          cancelled: 1,
-        },
-      },
-    ]);
+    },
+  ]);
 
-    sendResponse(res, {
-      statusCode: 200,
-      success: true,
-      message: "User-wise order status summary fetched successfully",
-      data: summary,
-    });
-  }
-);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Fetched all orders with admin revenue (4.99%)",
+    data: ordersWithRevenue,
+  });
+});
 
-
-
-export const getOrdersWithAdminRevenue = catchAsync(
-  async (req, res) => {
-    const ordersWithRevenue = await Order.aggregate([
-      // 1) Lookup Farm data
-      {
-        $lookup: {
-          from: "farms",           // MongoDB collection name for Farm
-          localField: "farm",
-          foreignField: "_id",
-          as: "farm",
-        },
-      },
-      { $unwind: "$farm" },
-
-      // 2) Lookup Product data
-      {
-        $lookup: {
-          from: "products",       // MongoDB collection name for Product
-          localField: "product",
-          foreignField: "_id",
-          as: "product",
-        },
-      },
-      { $unwind: "$product" },
-
-      // 3) Project only the fields we need + compute adminRevenue = totalPrice * 4.99%
-      {
-        $project: {
-          _id: 0,
-          farm: {
-            _id: "$farm._id",
-            name: "$farm.name",
-          },
-          product: {
-            _id: "$product._id",
-            name: "$product.title",
-          },
-          adminRevenue: {
-            // 4.99% = 0.0499
-            $round: [{ $multiply: ["$totalPrice", 0.0499] }, 2],
-          },
-        },
-      },
-    ]);
-
-    sendResponse(res, {
-      statusCode: 200,
-      success: true,
-      message: "Fetched all orders with admin revenue (4.99%)",
-      data: ordersWithRevenue,
-    });
-  }
-);
-
-export const writeReview = catchAsync (async (req, res) =>{
-  const { review, rating,product, farm } = req.body;
- const userId = req.user?._id; // assuming user is authenticated
+// Write a review for a product or farm
+export const writeReview = catchAsync(async (req, res) => {
+  const { review, rating, product, farm } = req.body;
+  const userId = req.user?._id; // assuming user is authenticated
 
   if (!review || !rating || (!product && !farm)) {
-    throw new AppError(400, "Review, rating, and either product or farm are required");
+    throw new AppError(
+      400,
+      "Review, rating, and either product or farm are required"
+    );
   }
 
   const reviewData = {
@@ -314,10 +313,14 @@ export const writeReview = catchAsync (async (req, res) =>{
     success: true,
     message: "Review submitted successfully",
   });
+});
 
-})
-
-
-
-
-
+// Get Featured Farms
+export const getFeaturedFarms = catchAsync(async (req, res) => {
+  const farms = await Farm.find().limit(8).sort({ rating: -1 });
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    data: farms,
+  });
+});
