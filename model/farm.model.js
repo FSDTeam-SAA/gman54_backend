@@ -25,6 +25,9 @@ const farmSchema = new mongoose.Schema({
   description: {
     type: String,
   },
+  isOrganic: {
+    type: Boolean,
+  },
   images: [{ public_id: String, url: String }],
   videos: [{ public_id: String, url: String }],
   seller: {
@@ -32,6 +35,14 @@ const farmSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
+    review: [{    
+      text: String,
+      rating: Number,
+      user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        },}
+    ],
 },{
   timestamps: true,
 });

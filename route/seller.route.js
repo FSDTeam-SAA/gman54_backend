@@ -24,7 +24,7 @@ import { protect } from "../middleware/auth.middleware.js";
 const router = express.Router();
 
 // Become a seller
-router.post("/apply", protect, upload.array("media"), applySellerOrCreateFarm);
+router.post("/apply", upload.array("media"), applySellerOrCreateFarm);
 router.get("/categories", protect, getAllCategories);
 
 // Dashboard and Product Management

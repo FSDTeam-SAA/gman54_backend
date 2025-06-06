@@ -8,7 +8,7 @@ import { sendEmail } from "../utils/sendEmail.js";
 import { User } from "./../model/user.model.js";
 
 export const register = catchAsync(async (req, res) => {
-  const { name, email, password, phone, username,role } = req.body;
+  const { name, email, password, phone, username,role,address } = req.body;
   if (!name || !email || !password) {
     throw new AppError(httpStatus.FORBIDDEN, "Please fill in all fields");
   }
@@ -31,6 +31,7 @@ export const register = catchAsync(async (req, res) => {
     phone,
     username: generatedUsername,
     verificationInfo: { token: otptoken },
+    address
   });
   if(role === 'seller'){
     user.role = role

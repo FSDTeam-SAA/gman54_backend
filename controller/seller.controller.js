@@ -11,8 +11,8 @@ import { Category } from "../model/category.model.js";
 
 // Apply to become a seller or create a farm
 export const applySellerOrCreateFarm = catchAsync(async (req, res) => {
-  const { farmName, description } = req.body;
-  const user = await User.findById(req.user._id);
+  const { farmName, description,id,isOrganic } = req.body;
+  const user = await User.findById(id);
   if (!user) {
     throw new AppError(httpStatus.NOT_FOUND, "User not found");
   }
@@ -49,6 +49,8 @@ export const applySellerOrCreateFarm = catchAsync(async (req, res) => {
       description,
       images,
       videos,
+      location: user.address,
+      isOrganic
     });
     user.farm = newFarm._id;
     await user.save();
@@ -66,6 +68,7 @@ export const applySellerOrCreateFarm = catchAsync(async (req, res) => {
     farm.videos = videos;
     farm.name = farmName;
     farm.description = description;
+    farm.location = user.address
     await farm.save();
   }
   sendResponse(res, {
@@ -392,5 +395,65 @@ export const getAllCategories = catchAsync(async (req, res) => {
     statusCode: httpStatus.OK,
     success: true,
     data: categories,
+  });
+});
+
+export const getAllFarm = catchAsync(async (req, res) => {
+  const { search } = req.query;
+
+  const filter = { status: "approved" };
+
+  if (search) {
+    const searchRegex = new RegExp(search, "i"); // case-insensitive regex
+
+    filter.$or = [
+      { name: searchRegex },
+      { "location.zipCode": searchRegex },
+      { "location.city": searchRegex },
+      { "location.state": searchRegex },
+      { "location.street": searchRegex },
+    ];
+  }
+  const farm = await Farm.find(filter).sort({ createdAt: -1 });
+  if (!farm || farm.length === 0) {
+    throw new AppError(httpStatus.NOT_FOUND, "No farm found");
+  }
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Farm found",
+    data: farm,
+  });
+});
+
+export const getFarmById = catchAsync(async (req, res) => {
+  const { farmId } = req.params;
+  const farm = await Farm.findOne({ _id: farmId });
+  if (!farm) {
+    throw new AppError(httpStatus.NOT_FOUND, "Farm not found");
+  }
+  const product = await Product.find({ farm: farmId, status: "active" });
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Farm found",
+    data: { farm, product },
+  });
+});
+
+export const getProductByCategory = catchAsync(async (req, res) => {
+  const { categoryId } = req.params;
+  const product = await Product.find({
+    category: categoryId,
+    status: "active",
+  }).sort({ createdAt: -1 });
+  if (!product || product.length === 0) {
+    throw new AppError(httpStatus.NOT_FOUND, "No product found");
+  }
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Product found",
+    data: product,
   });
 });
