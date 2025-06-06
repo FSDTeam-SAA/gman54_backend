@@ -25,6 +25,9 @@ const farmSchema = new mongoose.Schema({
   description: {
     type: String,
   },
+  isOrganic: {
+    type: Boolean,
+  },
   images: [{ public_id: String, url: String }],
   videos: [{ public_id: String, url: String }],
   seller: {
