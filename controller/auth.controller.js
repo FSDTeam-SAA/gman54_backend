@@ -29,15 +29,15 @@ export const register = catchAsync(async (req, res) => {
     email,
     password,
     phone,
-    username: generatedUsername,
-    verificationInfo: { token: otptoken },
+    username: generatedUsername, 
+    verificationInfo: { token: "", verified: true },
     address
   });
   if(role === 'seller'){
     user.role = role
     await user.save()
   }
-  await sendEmail(user.email, "Registerd Account", `Your OTP is ${otp}`);
+  // await sendEmail(user.email, "Registerd Account", `Your OTP is ${otp}`);
   // create token and sent to the client
 
   // const jwtPayload = {
