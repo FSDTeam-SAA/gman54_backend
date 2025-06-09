@@ -136,6 +136,7 @@ export const login = catchAsync(async (req, res) => {
       refreshToken: refreshToken,
       role: user.role,
       _id: user._id,
+      user: user
     },
   });
 });
@@ -185,7 +186,7 @@ export const resetPassword = catchAsync(async (req, res) => {
   }
   const verify = await verifyToken(
     user.password_reset_token,
-    process.env.OTP_SECRE
+    process.env.OTP_SECRET
   );
   if (verify.otp !== otp) {
     throw new AppError(httpStatus.BAD_REQUEST, "Invalid OTP");
