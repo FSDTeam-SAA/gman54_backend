@@ -414,7 +414,10 @@ export const getAllFarm = catchAsync(async (req, res) => {
       { "location.street": searchRegex },
     ];
   }
-  const farm = await Farm.find(filter).sort({ createdAt: -1 });
+  const farm = await Farm.find(filter).sort({ createdAt: -1 }).populate({
+      path: "seller", 
+      select: "avatar",
+    });;
   if (!farm || farm.length === 0) {
     throw new AppError(httpStatus.NOT_FOUND, "No farm found");
   }
