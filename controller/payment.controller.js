@@ -1,4 +1,5 @@
 
+import { Order } from '../model/order.model.js'
 import { paymentInfo } from '../model/payment.model.js'
 import {
   generateClientToken,
@@ -20,7 +21,7 @@ export const getClientToken = async (req, res) => {
 // processTransaction
 export const makePayment = async (req, res) => {
   try {
-    const { amount, paymentMethodNonce, userId, orderId, seasonId,type } = req.body
+    const { amount, paymentMethodNonce, userId, orderId, seasonId, type } = req.body
 
     const result = await processTransaction(amount, paymentMethodNonce)
 
@@ -36,15 +37,18 @@ export const makePayment = async (req, res) => {
         paymentMethod: result.transaction.paymentInstrumentType,
         type
       })
+      if (orderId && type === "order") {
+        const order = await Order.findByIdUpdate(orderId, { paymentStatus: "paid", transectionId: result.transaction.id })
+      }
 
-       res.status(200).json({
+      res.status(200).json({
         message: 'Payment successful',
         transactionId: result.transaction.id,
         payment: newPayment,
       })
       return
     } else {
-       res.status(400).json({
+      res.status(400).json({
         message: 'Payment failed',
         error: result.message
       })
