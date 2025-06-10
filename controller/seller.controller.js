@@ -41,7 +41,7 @@ export const applySellerOrCreateFarm = catchAsync(async (req, res) => {
     }
   }
 
-  const farm = await Farm.findOne({ user: user._id });
+  const farm = await Farm.findOne({ seller: user._id });
   if (!farm) {
     const newFarm = await Farm.create({
       seller: user._id,
@@ -70,6 +70,11 @@ export const applySellerOrCreateFarm = catchAsync(async (req, res) => {
     farm.description = description;
     farm.location = user.address
     await farm.save();
+  }else{
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "You have already a farm"
+    );
   }
   sendResponse(res, {
     statusCode: httpStatus.OK,
