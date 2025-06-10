@@ -37,6 +37,10 @@ const userSchema = new Schema(
     password_reset_token: { type: String, default: "" },
     fine: { type: Number, default: 0 },
     refreshToken: { type: String, default: "" },
+    farm : {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Farm",
+    }
   },
   { timestamps: true }
 );
