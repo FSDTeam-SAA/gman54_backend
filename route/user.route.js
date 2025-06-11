@@ -7,7 +7,7 @@ import {
 } from "../controller/user.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
 import upload from "../middleware/multer.middleware.js";
-import { getAllFarm, getFarmById, getProductByCategory } from "../controller/seller.controller.js";
+import { getAllFarm, getFarmById, getProductByCategory, getSingleProduct } from "../controller/seller.controller.js";
 
 const router = express.Router();
 
@@ -19,6 +19,8 @@ router.patch(
   updateProfile
 );
 router.post("/change-password", protect, changePassword);
+
+router.get("/product/:productId", getSingleProduct)
 
 router.get("/all-farm", getAllFarm)
 router.get("/farm/:farmId", getFarmById)

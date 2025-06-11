@@ -11,7 +11,7 @@ import { Category } from "../model/category.model.js";
 
 // Apply to become a seller or create a farm
 export const applySellerOrCreateFarm = catchAsync(async (req, res) => {
-  const { farmName, description,id,isOrganic } = req.body;
+  const { farmName, description, id, isOrganic } = req.body;
   const user = await User.findById(id);
   if (!user) {
     throw new AppError(httpStatus.NOT_FOUND, "User not found");
@@ -70,7 +70,7 @@ export const applySellerOrCreateFarm = catchAsync(async (req, res) => {
     farm.description = description;
     farm.location = user.address
     await farm.save();
-  }else{
+  } else {
     throw new AppError(
       httpStatus.BAD_REQUEST,
       "You have already a farm"
@@ -405,6 +405,9 @@ export const getAllCategories = catchAsync(async (req, res) => {
 
 export const getAllFarm = catchAsync(async (req, res) => {
   const { search } = req.query;
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 5;
+  const skip = (page - 1) * limit;
 
   const filter = { status: "approved" };
 
@@ -419,8 +422,10 @@ export const getAllFarm = catchAsync(async (req, res) => {
       { "location.street": searchRegex },
     ];
   }
-  const farm = await Farm.find(filter).sort({ createdAt: -1 }).populate({
-      path: "seller", 
+  const total = await Farm.countDocuments(filter);
+  const farm = await Farm.find(filter).skip(skip)
+    .limit(limit).sort({ createdAt: -1 }).populate({
+      path: "seller",
       select: "avatar",
     });;
   if (!farm || farm.length === 0) {
@@ -430,7 +435,7 @@ export const getAllFarm = catchAsync(async (req, res) => {
     statusCode: httpStatus.OK,
     success: true,
     message: "Farm found",
-    data: farm,
+    data: {farm,  pagination: { total, page, limit, totalPage: Math.ceil(total / limit) }},
   });
 });
 
@@ -465,3 +470,18 @@ export const getProductByCategory = catchAsync(async (req, res) => {
     data: product,
   });
 });
+
+export const getSingleProduct = catchAsync(async (req, res) => {
+  const { productId } = req.params;
+  const product = await Product.findOne({ _id: productId });
+  if (!product) {
+    throw new AppError(httpStatus.NOT_FOUND, "Product not found");
+  }
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Product found",
+    data: product,
+  });
+
+})
