@@ -242,7 +242,7 @@ export const getPendingProducts = catchAsync(async (req, res) => {
 // Add Product
 export const addProduct = catchAsync(async (req, res) => {
   const sellerId = req.user._id;
-  const { title, price, quantity, category, farmId } = req.body;
+  const { title, price, quantity, category, farmId,description,product_details } = req.body;
 
   let files = [];
   if (req.files) {
@@ -293,6 +293,8 @@ export const addProduct = catchAsync(async (req, res) => {
     media,
     farm: farmId,
     status: "pending",
+    description,
+    product_details
   });
 
   sendResponse(res, {
@@ -306,7 +308,7 @@ export const addProduct = catchAsync(async (req, res) => {
 // Update Product
 export const updateProduct = catchAsync(async (req, res) => {
   const { productId } = req.params;
-  const { title, price, quantity, category, farmId } = req.body;
+  const { title, price, quantity, category, farmId,description,product_details } = req.body;
 
   let files = [];
   if (req.files) {
@@ -332,6 +334,8 @@ export const updateProduct = catchAsync(async (req, res) => {
     if (!farm) throw new AppError(httpStatus.NOT_FOUND, "Farm not found");
     product.farm = farmId;
   }
+  if (description) product.description = description;
+  if (product_details) product.product_details = product_details;
 
   if (files.length > 0) {
     const media = await Promise.all(

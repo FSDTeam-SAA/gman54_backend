@@ -15,6 +15,8 @@ const productSchema = new mongoose.Schema({
     ref: "Category",
     required: true,
   },
+  description : { type: String },
+  product_details: { type: String },
   thumbnail: { public_id: String, url: String },
   media: [
     {
