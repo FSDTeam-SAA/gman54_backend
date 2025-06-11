@@ -477,7 +477,7 @@ export const getProductByCategory = catchAsync(async (req, res) => {
 
 export const getSingleProduct = catchAsync(async (req, res) => {
   const { productId } = req.params;
-  const product = await Product.findOne({ _id: productId }).populate("farm");
+  const product = await Product.findOne({ _id: productId }).populate("farm category");
   if (!product) {
     throw new AppError(httpStatus.NOT_FOUND, "Product not found");
   }
