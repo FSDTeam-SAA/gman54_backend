@@ -8,6 +8,7 @@ import {
 import { protect } from "../middleware/auth.middleware.js";
 import upload from "../middleware/multer.middleware.js";
 import { getAllFarm, getFarmById, getProductByCategory, getSingleProduct } from "../controller/seller.controller.js";
+import { contactUs } from "../controller/contactUs.controller.js";
 
 const router = express.Router();
 
@@ -26,6 +27,8 @@ router.get("/all-farm", getAllFarm)
 router.get("/farm/:farmId", getFarmById)
 router.get("/product-by-category/:categoryId", getProductByCategory)
 router.post("/write-review",protect,writeReview)
+
+router.post("/contact-us",contactUs)
 
 
 export default router;
