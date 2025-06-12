@@ -288,6 +288,20 @@ export const updateBlog = catchAsync(async (req, res) => {
   });
 });
 
+export const getSingleBlog = catchAsync(async (req, res) =>{
+  const { id } = req.params;
+  const blog = await Blog.findById(id)
+  if (!blog) {
+    throw new AppError(httpStatus.NOT_FOUND, "Blog not found");
+    }
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Blog found successfully",
+      data: blog,
+      });
+})
+
 // Delete Blog
 export const deleteBlog = catchAsync(async (req, res) => {
   const { id } = req.params;

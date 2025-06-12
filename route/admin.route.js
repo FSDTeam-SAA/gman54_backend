@@ -19,6 +19,7 @@ import {
   getSpecificSellerProfileRequest,
   approveSellerRequest,
   deleteSellerRequest,
+  getSingleBlog,
 } from "../controller/admin.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
 import upload from "../middleware/multer.middleware.js";
@@ -50,6 +51,7 @@ router.post("/banner-ads", protect, upload.array("banners"), uploadBannerAds);
 
 // Blog Management
 router.get("/blogs", protect, getBlogList);
+router.get("/blog/:id", protect, getSingleBlog);
 router.post("/blogs", protect, upload.single("thumbnail"), addBlog);
 router.patch("/blogs/:id", protect, upload.single("thumbnail"), updateBlog);
 router.delete("/blogs/:id", protect, deleteBlog);
