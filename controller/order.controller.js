@@ -62,22 +62,44 @@ export const checkoutCart = catchAsync(async (req, res) => {
     throw new AppError(404, "Cart is empty");
   }
 
-  const orders = [];
+  // Get the farm ID from the first item
+  const farmId = cart.items[0].farm.toString();
+
+  // Validate all items belong to the same farm
+  const isSingleFarm = cart.items.every(
+    (item) => item.farm.toString() === farmId
+  );
+
+  if (!isSingleFarm) {
+    throw new AppError(400, "All items in the cart must be from the same farm to checkout");
+  }
+
+  // Build product list and calculate total
+  const products = [];
+  let totalOrderPrice = 0;
 
   for (const item of cart.items) {
-    const product = item.product;
+    const productTotalPrice = item.quantity * item.price;
 
-    const order = new Order({
-      customer: customerId,
-      product: product._id,
+    products.push({
+      product: item.product._id,
       quantity: item.quantity,
-      farm: item.farm,
-      totalPrice: item.quantity * item.price,
+      price: item.price,
+      totalPrice: productTotalPrice,
     });
 
-    await order.save();
-    orders.push(order);
+    totalOrderPrice += productTotalPrice;
   }
+
+  // Create single farm order
+  const order = new Order({
+    customer: customerId,
+    farm: farmId,
+    products,
+    totalPrice: totalOrderPrice,
+  });
+
+  await order.save();
 
   // Clear cart
   cart.items = [];
@@ -86,15 +108,16 @@ export const checkoutCart = catchAsync(async (req, res) => {
 
   sendResponse(res, {
     statusCode: httpStatus.CREATED,
-    message: "Farm-wise orders created successfully",
+    message: "Order created successfully for the farm",
     success: true,
-    data: orders,
+    data: order,
   });
 });
 
+
 // 2. Get my orders
 export const getMyOrders = catchAsync(async (req, res) => {
-  const orders = await Order.find({ customer: req.user._id }).populate("product");
+  const orders = await Order.find({ customer: req.user._id }).populate("products.product");
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
