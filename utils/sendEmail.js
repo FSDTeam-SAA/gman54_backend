@@ -17,7 +17,7 @@ export const sendEmail = async (to,subject, html) => {
   });
 };
 
-export const sendMessageTemplate = ({ email, subject, message }) => {
+export const sendMessageTemplate = ({ email, name,phone, message }) => {
   return `
     <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 650px; margin: auto; border: 1px solid #e5e7eb; padding: 30px; border-radius: 12px; background-color: #ffffff; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);">
       <header style="text-align: center; padding-bottom: 20px; border-bottom: 1px solid #e5e7eb;">
@@ -27,7 +27,8 @@ export const sendMessageTemplate = ({ email, subject, message }) => {
 
       <section style="padding: 25px 0;">
         <p style="font-size: 16px; color: #111827; margin: 0 0 10px;"><strong>Sender Email:</strong> ${email}</p>
-        <p style="font-size: 16px; color: #111827; margin: 0 0 10px;"><strong>Subject:</strong> ${subject}</p>
+        <p style="font-size: 16px; color: #111827; margin: 0 0 10px;"><strong>Name:</strong> ${name}</p>
+        <p style="font-size: 16px; color: #111827; margin: 0 0 10px;"><strong>Phone:</strong> ${phone}</p>
 
         <div style="margin-top: 20px; padding: 20px; background-color: #f9fafb; border-left: 4px solid #1d4ed8; border-radius: 8px;">
           <p style="font-size: 15px; color: #374151; margin: 0; white-space: pre-wrap;">

@@ -6,6 +6,7 @@ import adminRoute from "../route/admin.route.js";
 import cartRoute from "../route/cart.route.js";
 import orderRoute from "../route/order.route.js";
 import paymentRouter from "../route/payment.route.js";
+import chatRoute from "../route/chat.route.js";
 
 const router = express.Router();
 
@@ -17,5 +18,6 @@ router.use("/admin", adminRoute);
 router.use("/cart", cartRoute);
 router.use("/order", orderRoute);
 router.use("/payment",paymentRouter)
+router.use("/chat", chatRoute);
 
 export default router;
