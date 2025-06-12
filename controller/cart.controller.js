@@ -9,7 +9,7 @@ import httpStatus from "http-status";
 // GET /api/cart - Get user's cart
 export const getCart = catchAsync(async (req, res) => {
 
-    const cart = await Cart.findOne({ customer: req.user._id }).populate("items.product");
+    const cart = await Cart.findOne({ customer: req.user._id }).populate("items.product items.farm");
 
     if (!cart){
         throw new AppError( 404,"Cart not found");
