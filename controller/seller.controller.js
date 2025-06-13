@@ -110,7 +110,7 @@ export const getDashboardOverview = catchAsync(async (req, res) => {
 
 // Sell Report
 export const getSellReport = catchAsync(async (req, res) => {
-  const sellerId = req.user._id;
+  const sellerId = req.user.farm;
   const { period = "month" } = req.query;
   const periods = { day: 1, week: 7, month: 30, year: 365 };
   const days = periods[period] || 30;
@@ -118,7 +118,7 @@ export const getSellReport = catchAsync(async (req, res) => {
   const lastMonthStart = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
 
   const currentSales = await Order.aggregate([
-    { $match: { customer: sellerId, date: { $gte: startDate } } },
+    { $match: { farm: sellerId, date: { $gte: startDate } } },
     {
       $group: {
         _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
@@ -130,7 +130,7 @@ export const getSellReport = catchAsync(async (req, res) => {
   const lastMonthSales = await Order.aggregate([
     {
       $match: {
-        customer: sellerId,
+        farm: sellerId,
         date: { $gte: lastMonthStart, $lt: startDate },
       },
     },
@@ -149,7 +149,7 @@ export const getSellReport = catchAsync(async (req, res) => {
     data: {
       thisMonth: currentSales.map((d) => ({ date: d._id, total: d.total })),
       lastMonth: lastMonthSales.map((d) => ({ date: d._id, total: d.total })),
-      userId: req.user.uniqueId,
+      farm: req.user.farm,
     },
   });
 });
