@@ -156,7 +156,7 @@ export const getSellReport = catchAsync(async (req, res) => {
 
 // Total New Products Report
 export const getNewProductsReport = catchAsync(async (req, res) => {
-  const sellerId = req.user._id;
+  const sellerId = req.user.farm;
   const { period = "month" } = req.query;
   const periods = { day: 1, week: 7, month: 30, year: 365 };
   const days = periods[period] || 30;
@@ -165,7 +165,7 @@ export const getNewProductsReport = catchAsync(async (req, res) => {
   const products = await Product.aggregate([
     {
       $match: {
-        farm: { $in: await Farm.find({ seller: sellerId }).distinct("_id") },
+        farm: sellerId,
         date: { $gte: startDate },
       },
     },
