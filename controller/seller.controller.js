@@ -166,12 +166,12 @@ export const getNewProductsReport = catchAsync(async (req, res) => {
     {
       $match: {
         farm: sellerId,
-        date: { $gte: startDate },
+        createdAt: { $gte: startDate },
       },
     },
     {
       $group: {
-        _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
+        _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
         count: { $sum: 1 },
       },
     },
@@ -183,7 +183,7 @@ export const getNewProductsReport = catchAsync(async (req, res) => {
     success: true,
     data: {
       report: products.map((p) => ({ date: p._id, count: p.count })),
-      userId: req.user.uniqueId,
+      userId: req.user._id,
     },
   });
 });
