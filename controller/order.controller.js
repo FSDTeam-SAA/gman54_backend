@@ -161,25 +161,51 @@ export const updateOrderStatus = catchAsync(async (req, res) => {
 
 // 5. Get orders for a farm (farm user)
 export const getFarmOrders = catchAsync(async (req, res) => {
-  const farmId = req.user._id; // Assuming farm users are authenticated this way
-  const farm = await Farm.findOne({seller: farmId});
-  if( !farm ) {
+  const farmId = req.user._id; // Assuming farm users are authenticated
+  const farm = await Farm.findOne({ seller: farmId });
+
+  if (!farm) {
     throw new AppError(404, "Farm not found");
   }
 
-  // const farmProducts = await Product.find({ farm: farmId }).select("_id");
+  const orders = await Order.find({ farm: farm._id })
+    .populate("products.product")
+    .populate("customer", "name email username phone")
+    .lean(); // Use .lean() so we can modify the result
 
-  const orders = await Order.find({
-    farm: farm._id,
-  }).populate("products.product").populate("customer","name email username phone");
+  const enrichedOrders = orders.map(order => {
+    // Step 1: Compute total amount if not stored
+    let total = 0;
+    if (order.totalAmount) {
+      total = order.totalAmount;
+    } else {
+      total = order.products.reduce((sum, item) => {
+        const price = item.price || item.product?.price || 0;
+        const qty = item.quantity || 1;
+        return sum + price * qty;
+      }, 0);
+    }
+
+    // Step 2: Calculate admin cut and seller revenue
+    const adminCommission = +(total * 0.0499).toFixed(2);
+    const sellerRevenue = +(total - adminCommission).toFixed(2);
+
+    return {
+      ...order,
+      totalAmount: +total.toFixed(2),
+      adminCommission,
+      sellerRevenue,
+    };
+  });
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     message: "Orders for your farm retrieved",
     success: true,
-    data: orders,
+    data: enrichedOrders,
   });
 });
+
 
 // 6. Cancel Order (customer only)
 export const cancelOrder = catchAsync(async (req, res) => {
