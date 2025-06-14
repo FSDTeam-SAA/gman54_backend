@@ -37,6 +37,8 @@ export const sendMessage = catchAsync(async (req, res) => {
     const messages = {
         text: message,
         user: req.user._id,
+        date: new Date(),
+        read: false
     }
     chat.messages.push(messages);
     await chat.save();
