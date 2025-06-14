@@ -43,7 +43,10 @@ export const sendMessage = catchAsync(async (req, res) => {
     chat.messages.push(messages);
     await chat.save();
 
-    io.to(`chat_${chatId}`).emit("newMassage", messages);
+    const chat12 = await Chat.find({ _id: chatId }).select({ messages: { $slice: -1 } }) // Only include last message
+        .populate("messages.user", "name role avatar"); // Populate sender of last message
+
+    io.to(`chat_${chatId}`).emit("newMassage", chat12.messages);
 
     sendResponse(res, {
         statusCode: httpStatus.OK,
@@ -57,7 +60,7 @@ export const sendMessage = catchAsync(async (req, res) => {
 export const updateMessage = catchAsync(async (req, res) => {
     const { chatId, messageId, newText } = req.body;
 
-    const chat = await Chat.findById(chatId);
+    const chat = await Chat.findById(chatId).populate("messages.user", "name role avatar"); 
     if (!chat) throw new AppError(404, "Chat not found");
 
     const message = chat.messages.id(messageId);
