@@ -171,7 +171,7 @@ export const getFarmOrders = catchAsync(async (req, res) => {
 
   const orders = await Order.find({
     farm: farm._id,
-  }).populate("product").populate("customer");
+  }).populate("products.product").populate("customer","name email username phone");
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
