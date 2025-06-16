@@ -18,6 +18,12 @@ const orderSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    address: {
+      street: { type: String, default: "" },
+      city: { type: String, default: "" },
+      state: { type: String, default: "" },
+      zipCode: { type: String, default: "" },
+    },
     products: [
       {
         product: {
