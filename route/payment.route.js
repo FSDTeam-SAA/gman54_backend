@@ -1,13 +1,24 @@
 import express from 'express'
-import { getClientToken, makePayment } from '../controller/payment.controller.js'
+import {
+//   getClientToken,
+//   makePayment,
+  createPayment,
+  confirmPayment,
+} from '../controller/payment.controller.js'
 
 
 const router = express.Router()
 
 // Generate client token for Braintree
-router.get('/payments/client-token', getClientToken)
+// router.get('/payments/client-token', getClientToken)
 
 // Process payment
-router.post('/payments/checkout', makePayment)
+// router.post('/payments/checkout', makePayment)
+
+// Create Payment
+router.post("/create-payment", createPayment);
+
+// Capture Payment
+router.post("/confirm-payment", confirmPayment)
 
 export default router
