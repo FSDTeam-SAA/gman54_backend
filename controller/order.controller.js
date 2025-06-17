@@ -116,6 +116,49 @@ export const checkoutCart = catchAsync(async (req, res) => {
   });
 });
 
+export const createSingleOrder = catchAsync(async (req, res) => {
+  const customerId = req.user._id;
+  const { productId, quantity, address } = req.body;
+
+  // Validate required input
+  if (!productId || !quantity || !address) {
+    throw new AppError(400, "Product ID, quantity, and address are required");
+  }
+
+  // Get product with farm info
+  const product = await Product.findById(productId).populate("farm");
+  if (!product) {
+    throw new AppError(404, "Product not found");
+  }
+
+  const totalPrice = product.price * quantity;
+
+  const order = new Order({
+    customer: customerId,
+    farm: product.farm._id,
+    products: [
+      {
+        product: product._id,
+        quantity,
+        price: product.price,
+        totalPrice,
+      },
+    ],
+    totalPrice,
+    address,
+  });
+
+  await order.save();
+
+  sendResponse(res, {
+    statusCode: httpStatus.CREATED,
+    message: "Order placed successfully for the product",
+    success: true,
+    data: order,
+  });
+});
+
+
 
 // 2. Get my orders
 export const getMyOrders = catchAsync(async (req, res) => {

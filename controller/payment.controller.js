@@ -60,9 +60,9 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 export const createPayment = async (req, res) => {
   const { userId, price, orderId, type } = req.body
 
-  if (!userId || !orderId || !price || !type) {
+  if (!userId  || !price || !type) {
     return res.status(400).json({
-      error: 'userId, serviceId, and amount are required.',
+      error: 'userId, and amount are required.',
     })
   }
 
@@ -74,6 +74,7 @@ export const createPayment = async (req, res) => {
       metadata: {
         userId,
         orderId,
+        type,
       },
     })
 
