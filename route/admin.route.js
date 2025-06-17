@@ -24,7 +24,7 @@ import {
 import { protect } from "../middleware/auth.middleware.js";
 import upload from "../middleware/multer.middleware.js";
 import { getOrdersWithAdminRevenue, getUserWiseOrderStatusSummary } from "../controller/user.controller.js";
-import { getAdminDashboard } from "../controller/dashboard.controller.js";
+import { AllDonation, getAdminDashboard } from "../controller/dashboard.controller.js";
 
 const router = express.Router();
 
@@ -78,5 +78,6 @@ router.get("/user-profile",getUserWiseOrderStatusSummary);
 router.get("/admin-reveneu",getOrdersWithAdminRevenue)
 
 router.get("/dashboard",getAdminDashboard)
+router.get("/donation", AllDonation)
 
 export default router;

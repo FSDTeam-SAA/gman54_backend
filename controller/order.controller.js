@@ -55,6 +55,7 @@ import { Farm } from "../model/farm.model.js";
 // 1. Checkout - Create farm-wise orders from cart
 export const checkoutCart = catchAsync(async (req, res) => {
   const customerId = req.user._id;
+  const {address} = req.body;
 
   const cart = await Cart.findOne({ customer: customerId }).populate("items.product");
 
@@ -97,6 +98,7 @@ export const checkoutCart = catchAsync(async (req, res) => {
     farm: farmId,
     products,
     totalPrice: totalOrderPrice,
+    address
   });
 
   await order.save();
