@@ -104,43 +104,51 @@ export const createPayment = async (req, res) => {
 
 // // Confirm Payment – Stripe will automatically confirm via webhook or frontend, but optionally:
 export const confirmPayment = async (req, res) => {
-  const { paymentIntentId } = req.body
+  const { paymentIntentId } = req.body;
 
   if (!paymentIntentId) {
     return res.status(400).json({
       error: 'paymentIntentId is required.',
-    })
+    });
   }
 
   try {
-    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)
+    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
     if (paymentIntent.status === 'succeeded') {
-      // Update payment record
-      await paymentInfo.findOneAndUpdate(
+      // Update paymentInfo record
+      const paymentRecord = await paymentInfo.findOneAndUpdate(
         { transactionId: paymentIntentId },
-        { pending: 'complete' }
-      )
+        { paymentStatus: 'complete' },
+        { new: true }
+      );
+
+      // Update corresponding order's payment status to 'paid'
+      if (paymentRecord?.orderId) {
+        await Order.findByIdAndUpdate(paymentRecord.orderId, {
+          paymentStatus: 'paid',
+        });
+      }
 
       return res.status(200).json({
         success: true,
         message: 'Payment successfully captured.',
         paymentIntent,
-      })
+      });
     } else {
       await paymentInfo.findOneAndUpdate(
         { transactionId: paymentIntentId },
-        { status: 'failed' }
-      )
+        { paymentStatus: 'failed' }
+      );
 
       return res.status(400).json({
         error: 'Payment was not successful.',
-      })
+      });
     }
   } catch (error) {
-    console.error('Error confirming payment:', error)
+    console.error('Error confirming payment:', error);
     res.status(500).json({
       error: 'Internal server error.',
-    })
+    });
   }
-}
+};
