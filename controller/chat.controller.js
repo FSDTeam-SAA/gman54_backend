@@ -52,10 +52,11 @@ export const sendMessage = catchAsync(async (req, res) => {
   chat.messages.push(messages);
   await chat.save();
 
-    const chat12 = await Chat.find({ _id: chatId }).select({ messages: { $slice: -1 } }) // Only include last message
-        .populate("messages.user", "name role avatar"); // Populate sender of last message
+  const chat12 = await Chat.findOne({ _id: chatId })
+    .select({ messages: { $slice: -1 } }) // Only include last message
+    .populate("messages.user", "name role avatar"); // Populate sender of last message
 
-    io.to(`chat_${chatId}`).emit("newMassage", chat12.messages);
+  io.to(`chat_${chatId}`).emit("newMassage", chat12.messages[0]);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -68,8 +69,11 @@ export const sendMessage = catchAsync(async (req, res) => {
 export const updateMessage = catchAsync(async (req, res) => {
   const { chatId, messageId, newText } = req.body;
 
-    const chat = await Chat.findById(chatId).populate("messages.user", "name role avatar"); 
-    if (!chat) throw new AppError(404, "Chat not found");
+  const chat = await Chat.findById(chatId).populate(
+    "messages.user",
+    "name role avatar"
+  );
+  if (!chat) throw new AppError(404, "Chat not found");
 
   const message = chat.messages.id(messageId);
   if (!message) throw new AppError(404, "Message not found");
