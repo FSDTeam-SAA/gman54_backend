@@ -445,7 +445,7 @@ export const getAllFarm = catchAsync(async (req, res) => {
 
 export const getFarmById = catchAsync(async (req, res) => {
   const { farmId } = req.params;
-  const farm = await Farm.findOne({ _id: farmId });
+  const farm = await Farm.findOne({ _id: farmId }).populate("review.user","name role avatar");
   if (!farm) {
     throw new AppError(httpStatus.NOT_FOUND, "Farm not found");
   }
@@ -477,7 +477,7 @@ export const getProductByCategory = catchAsync(async (req, res) => {
 
 export const getSingleProduct = catchAsync(async (req, res) => {
   const { productId } = req.params;
-  const product = await Product.findOne({ _id: productId }).populate("farm category");
+  const product = await Product.findOne({ _id: productId }).populate("farm category review.user");
   if (!product) {
     throw new AppError(httpStatus.NOT_FOUND, "Product not found");
   }
