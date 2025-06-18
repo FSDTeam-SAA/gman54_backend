@@ -1,9 +1,10 @@
 import express from 'express'
 import {
-//   getClientToken,
-//   makePayment,
+  //   getClientToken,
+  //   makePayment,
   createPayment,
   confirmPayment,
+  createStripeConnectAccount,
 } from '../controller/payment.controller.js'
 
 
@@ -20,5 +21,9 @@ router.post("/create-payment", createPayment);
 
 // Capture Payment
 router.post("/confirm-payment", confirmPayment)
+
+
+router.post('/connect', createStripeConnectAccount)
+
 
 export default router
