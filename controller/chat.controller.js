@@ -31,7 +31,7 @@ export const sendMessage = catchAsync(async (req, res) => {
     if (!chat) {
         throw new AppError(404, "Chat not found");
     }
-    if (chat.user.toString() !== req.user._id.toString() || chat?.farm?.toString() !== req.user?.farm?.toString()) {
+    if (chat.user.toString() !== req.user._id.toString() && chat?.farm?.toString() !== req.user?.farm?.toString()) {
         throw new AppError(401, "You are not authorized to send message in this chat");
     }
     const messages = {
