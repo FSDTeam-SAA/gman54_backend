@@ -6,4 +6,4 @@ const adsSchema = new mongoose.Schema({
   timestamps: true
 });
 
-export const Ads = mongoose.model("Ads", badsSchemalogSchema);
+export const Ads = mongoose.model("Ads", adsSchema);
