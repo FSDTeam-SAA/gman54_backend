@@ -4,6 +4,8 @@ import {
   updateProfile,
   changePassword,
   writeReview,
+  writeReviewWebsite,
+  getReviews,
 } from "../controller/user.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
 import upload from "../middleware/multer.middleware.js";
@@ -27,6 +29,12 @@ router.get("/all-farm", getAllFarm)
 router.get("/farm/:farmId", getFarmById)
 router.get("/product-by-category/:categoryId", getProductByCategory)
 router.post("/write-review",protect,writeReview)
+
+
+router.post("/write-review-website",protect,writeReviewWebsite)
+router.get("/get-review-website",protect,getReviews)
+
+
 
 router.post("/contact-us",contactUs)
 

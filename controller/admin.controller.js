@@ -8,6 +8,7 @@ import { Category } from "./../model/category.model.js";
 import { Product } from "./../model/product.model.js";
 import { Blog } from "./../model/blog.model.js";
 import { uploadOnCloudinary } from "./../utils/commonMethod.js";
+import { Ads } from "../model/ads.model.js";
 
 // Overview
 export const getAdminOverview = catchAsync(async (req, res) => {
@@ -182,9 +183,12 @@ export const uploadBannerAds = catchAsync(async (req, res) => {
         resource_type: "image",
         folder: "banners",
       });
-      return { public_id: result.public_id, url: result.secure_url };
+      let ban = await Ads.create({ thumbnail: { public_id: result.public_id, url: result.secure_url } })
+      return ban
     })
   );
+
+
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -193,6 +197,56 @@ export const uploadBannerAds = catchAsync(async (req, res) => {
     data: banners,
   });
 });
+
+export const updateAds = catchAsync(async (req, res) => {
+  const { id } = req.params;
+
+  const banners = await Promise.all(
+    req.files.map(async (file) => {
+      const result = await uploadOnCloudinary(file.buffer, {
+        resource_type: "image",
+        folder: "banners",
+      });
+      let ban = await Ads.findByIdAndUpdate(id,{ thumbnail: { public_id: result.public_id, url: result.secure_url } },{new: true})
+      return ban
+    })
+  );
+
+
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Banners uploaded successfully",
+    data: banners,
+  });
+})
+
+export const getBannerAds = catchAsync(async (req, res) => {
+  const banner = await Ads.find()
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Banners retrieved successfully",
+    data: banner,
+  });
+})
+
+export const deleteBannerAds = catchAsync(async (req, res) => {
+  const banner = await Ads.findById(req.params.id)
+  if (!banner) {
+    throw new AppError(httpStatus.NOT_FOUND, "Banner not found")
+  }
+  banner.remove()
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Banner deleted successfully",
+    data: ""
+  });
+})
+
+
 
 // Blog Management List
 export const getBlogList = catchAsync(async (req, res) => {
@@ -288,18 +342,18 @@ export const updateBlog = catchAsync(async (req, res) => {
   });
 });
 
-export const getSingleBlog = catchAsync(async (req, res) =>{
+export const getSingleBlog = catchAsync(async (req, res) => {
   const { id } = req.params;
   const blog = await Blog.findById(id)
   if (!blog) {
     throw new AppError(httpStatus.NOT_FOUND, "Blog not found");
-    }
-    sendResponse(res, {
-      statusCode: httpStatus.OK,
-      success: true,
-      message: "Blog found successfully",
-      data: blog,
-      });
+  }
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Blog found successfully",
+    data: blog,
+  });
 })
 
 // Delete Blog

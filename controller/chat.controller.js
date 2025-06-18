@@ -29,28 +29,22 @@ export const createChat = catchAsync(async (req, res) => {
 });
 
 export const sendMessage = catchAsync(async (req, res) => {
-  const { chatId, message } = req.body;
-  const chat = await Chat.findById(chatId);
-  if (!chat) {
-    throw new AppError(404, "Chat not found");
-  }
-  if (
-    chat.user.toString() !== req.user._id.toString() &&
-    chat?.farm?.toString() !== req.user?.farm?.toString()
-  ) {
-    throw new AppError(
-      401,
-      "You are not authorized to send message in this chat"
-    );
-  }
-  const messages = {
-    text: message,
-    user: req.user._id,
-    date: new Date(),
-    read: false,
-  };
-  chat.messages.push(messages);
-  await chat.save();
+    const { chatId, message } = req.body;
+    const chat = await Chat.findById(chatId);
+    if (!chat) {
+        throw new AppError(404, "Chat not found");
+    }
+    if (chat.user.toString() !== req.user._id.toString() && chat?.farm?.toString() !== req.user?.farm?.toString()) {
+        throw new AppError(401, "You are not authorized to send message in this chat");
+    }
+    const messages = {
+        text: message,
+        user: req.user._id,
+        date: new Date(),
+        read: false
+    }
+    chat.messages.push(messages);
+    await chat.save();
 
   const chat12 = await Chat.findOne({ _id: chatId })
     .select({ messages: { $slice: -1 } }) // Only include last message
