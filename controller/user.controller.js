@@ -7,6 +7,7 @@ import catchAsync from "../utils/catchAsync.js";
 import { Order } from "../model/order.model.js";
 import { Farm } from "../model/farm.model.js";
 import { Product } from "../model/product.model.js";
+import { Review } from "../model/review.model.js";
 
 // Get user profile
 export const getProfile = catchAsync(async (req, res) => {
@@ -319,5 +320,44 @@ export const writeReview = catchAsync (async (req, res) =>{
 
 
 
+export const getReviews = catchAsync(async (req, res) => {
+  const reviewDoc = await Review.find().populate("review.user", "name avatar");
+
+  if (!reviewDoc) {
+    throw new AppError(404, "No reviews found");
+  }
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Reviews fetched successfully",
+    data: reviewDoc.review,
+  });
+});
+
+
+export const writeReviewWebsite = catchAsync(async (req, res) => {
+  const { text, rating } = req.body;
+  const userId = req.user._id; // assuming user is authenticated
+
+  // Find the single review doc or create if it doesn't exist
+  let reviewDoc = await Review.findOne();
+
+  if (!reviewDoc) {
+    reviewDoc = await Review.create({
+      review: [{ text, rating, user: userId }],
+    });
+  } else {
+    reviewDoc.review.push({ text, rating, user: userId });
+    await reviewDoc.save();
+  }
+
+  sendResponse(res, {
+    statusCode: 201,
+    success: true,
+    message: "Review submitted successfully",
+    data: reviewDoc,
+  });
+});
 
 
