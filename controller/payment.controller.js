@@ -52,7 +52,6 @@ export const createPayment = async (req, res) => {
   }
 }
 
-
 export const confirmPayment = async (req, res) => {
   const { paymentIntentId } = req.body
 
@@ -104,9 +103,6 @@ export const confirmPayment = async (req, res) => {
         transfer_group: `ORDER_${paymentIntent.id}`,
       })
     }
-    
-
-   
 
     return res.status(200).json({
       success: true,
@@ -118,7 +114,6 @@ export const confirmPayment = async (req, res) => {
     res.status(500).json({ error: 'Internal server error.' })
   }
 }
-
 
 export const createStripeConnectAccount = async (req, res) => {
   try {
@@ -145,7 +140,7 @@ export const createStripeConnectAccount = async (req, res) => {
     const accountLink = await stripe.accountLinks.create({
       account: accountId,
       refresh_url: `${process.env.CLIENT_URL}/connect/refresh`,
-      return_url: `${process.env.CLIENT_URL}/connect/success`,
+      return_url: `${process.env.CLIENT_URL}/stripe-account-success`,
       type: 'account_onboarding',
     })
 
