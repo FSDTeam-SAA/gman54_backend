@@ -56,8 +56,8 @@ router.patch("/banner-ads/:id", protect, upload.array("banners"), updateAds);
 router.delete("/banner-ads/:id", protect, deleteBannerAds);
 
 // Blog Management
-router.get("/blogs", protect, getBlogList);
-router.get("/blog/:id", protect, getSingleBlog);
+router.get("/blogs", getBlogList);
+router.get("/blog/:id", getSingleBlog);
 router.post("/blogs", protect, upload.single("thumbnail"), addBlog);
 router.patch("/blogs/:id", protect, upload.single("thumbnail"), updateBlog);
 router.delete("/blogs/:id", protect, deleteBlog);
