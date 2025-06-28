@@ -25,8 +25,8 @@ export const getAdminDashboard = catchAsync(async (req, res) => {
 
   // 4. Total Donations
   const donationAgg = await paymentInfo.aggregate([
-    { $match: { type: "donation" } },
-    { $group: { _id: null, total: { $sum: "$amount" } } },
+    { $match: { type: "donation",paymentStatus: "complete", } },
+    { $group: { _id: null, total: { $sum: "$price" } } },
   ]);
   const totalDonation = donationAgg[0]?.total || 0;
 
