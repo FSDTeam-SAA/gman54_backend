@@ -118,6 +118,7 @@ export const getRequestProducts = catchAsync(async (req, res) => {
 
   const products = await Product.find({ status: "pending" })
     .populate("category", "name")
+    .populate("farm")
     .skip(skip)
     .limit(limit)
     .sort({ createdAt: -1 });

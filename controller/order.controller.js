@@ -174,7 +174,7 @@ export const getMyOrders = catchAsync(async (req, res) => {
 
 // 3. Get all orders (admin)
 export const getAllOrders = catchAsync(async (req, res) => {
-  const orders = await Order.find().populate("product farm").populate("customer");
+  const orders = await Order.find().populate("product").populate("customer");
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
