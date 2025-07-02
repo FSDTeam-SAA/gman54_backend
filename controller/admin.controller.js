@@ -238,7 +238,7 @@ export const deleteBannerAds = catchAsync(async (req, res) => {
   if (!banner) {
     throw new AppError(httpStatus.NOT_FOUND, "Banner not found")
   }
-  banner.remove()
+  await Ads.findByIdAndDelete( req.params.id)
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
