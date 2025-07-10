@@ -25,8 +25,8 @@ export const getAdminDashboard = catchAsync(async (req, res) => {
 
   // 4. Total Donations
   const donationAgg = await paymentInfo.aggregate([
-    { $match: { type: "donation" } },
-    { $group: { _id: null, total: { $sum: "$amount" } } },
+    { $match: { type: "donation",paymentStatus: "complete", } },
+    { $group: { _id: null, total: { $sum: "$price" } } },
   ]);
   const totalDonation = donationAgg[0]?.total || 0;
 
@@ -61,6 +61,7 @@ if (range === "month") {
     {
       $match: {
         type: "donation",
+        paymentStatus: "complete",
         createdAt: {
           $gte: new Date(year, 0, 1),
           $lte: new Date(year, 11, 31, 23, 59, 59),
@@ -70,10 +71,11 @@ if (range === "month") {
     {
       $group: {
         _id: { month: { $month: "$createdAt" } },
-        total: { $sum: "$amount" },
+        total: { $sum: "$price" },
       },
     },
   ]);
+  // console.log( 1, new Date(year, 11, 31, 23, 59, 59));
 
   const monthLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -89,6 +91,7 @@ if (range === "month") {
     {
       $match: {
         type: "donation",
+        paymentStatus: "complete",
         createdAt: { $gte: startDate },
       },
     },
@@ -99,7 +102,7 @@ if (range === "month") {
           month: { $month: "$createdAt" },
           day: { $dayOfMonth: "$createdAt" },
         },
-        total: { $sum: "$amount" },
+        total: { $sum: "$price" },
       },
     },
   ]);
@@ -124,13 +127,14 @@ if (range === "month") {
     {
       $match: {
         type: "donation",
+        paymentStatus: "complete",
         createdAt: { $gte: new Date(startYear, 0, 1) },
       },
     },
     {
       $group: {
         _id: { year: { $year: "$createdAt" } },
-        total: { $sum: "$amount" },
+        total: { $sum: "$price" },
       },
     },
   ]);

@@ -226,59 +226,121 @@ export const getUserWiseOrderStatusSummary = catchAsync(
 
 
 
-export const getOrdersWithAdminRevenue = catchAsync(
-  async (req, res) => {
-    const ordersWithRevenue = await Order.aggregate([
-      // 1) Lookup Farm data
-      {
-        $lookup: {
-          from: "farms",           // MongoDB collection name for Farm
-          localField: "farm",
-          foreignField: "_id",
-          as: "farm",
-        },
-      },
-      { $unwind: "$farm" },
+// export const getOrdersWithAdminRevenue = catchAsync(
+//   async (req, res) => {
+//     const ordersWithRevenue = await Order.aggregate([
+//       // 1) Lookup Farm data
+//       {
+//         $lookup: {
+//           from: "farms",           // MongoDB collection name for Farm
+//           localField: "farm",
+//           foreignField: "_id",
+//           as: "farm",
+//         },
+//       },
+//       { $unwind: "$farm" },
 
-      // 2) Lookup Product data
-      {
-        $lookup: {
-          from: "products",       // MongoDB collection name for Product
-          localField: "product",
-          foreignField: "_id",
-          as: "product",
-        },
-      },
-      { $unwind: "$product" },
+//       // 2) Lookup Product data
+//       {
+//         $lookup: {
+//           from: "products",       // MongoDB collection name for Product
+//           localField: "product",
+//           foreignField: "_id",
+//           as: "product",
+//         },
+//       },
+//       { $unwind: "$product" },
 
-      // 3) Project only the fields we need + compute adminRevenue = totalPrice * 4.99%
-      {
-        $project: {
-          _id: 0,
-          farm: {
-            _id: "$farm._id",
-            name: "$farm.name",
-          },
-          product: {
-            _id: "$product._id",
-            name: "$product.title",
-          },
-          adminRevenue: {
-            // 4.99% = 0.0499
-            $round: [{ $multiply: ["$totalPrice", 0.0499] }, 2],
-          },
-        },
-      },
-    ]);
+//       // 3) Project only the fields we need + compute adminRevenue = totalPrice * 4.99%
+//       {
+//         $project: {
+//           _id: 0,
+//           farm: {
+//             _id: "$farm._id",
+//             name: "$farm.name",
+//           },
+//           product: {
+//             _id: "$product._id",
+//             name: "$product.title",
+//           },
+//           adminRevenue: {
+//             // 4.99% = 0.0499
+//             $round: [{ $multiply: ["$totalPrice", 0.0499] }, 2],
+//           },
+//         },
+//       },
+//     ]);
 
-    sendResponse(res, {
-      statusCode: 200,
-      success: true,
-      message: "Fetched all orders with admin revenue (4.99%)",
-      data: ordersWithRevenue,
-    });
-  }
-);
+//     sendResponse(res, {
+//       statusCode: 200,
+//       success: true,
+//       message: "Fetched all orders with admin revenue (4.99%)",
+//       data: ordersWithRevenue,
+//     });
+//   }
+// );
+
+export const getOrdersWithAdminRevenue = catchAsync(async (req, res) => {
+  const ordersWithRevenue = await Order.aggregate([
+    // Unwind the products array to handle each product individually
+    { $unwind: "$products" },
+
+    // Lookup Farm details
+    {
+      $lookup: {
+        from: "farms",
+        localField: "farm",
+        foreignField: "_id",
+        as: "farm",
+      },
+    },
+    { $unwind: "$farm" },
+
+    // Lookup Product details
+    {
+      $lookup: {
+        from: "products",
+        localField: "products.product",
+        foreignField: "_id",
+        as: "product",
+      },
+    },
+    { $unwind: "$product" },
+
+    // Project necessary fields and calculate admin revenue per product
+    {
+      $project: {
+        _id: 0,
+        orderId: "$_id",
+        farm: {
+          _id: "$farm._id",
+          name: "$farm.name",
+        },
+        product: {
+          _id: "$product._id",
+          name: "$product.title",
+        },
+        quantity: "$products.quantity",
+        price: "$products.price",
+        totalPrice: "$products.totalPrice",
+        adminRevenue: {
+          $round: [{ $multiply: ["$products.totalPrice", 0.0499] }, 2],
+        },
+        orderDate: "$date",
+        orderStatus: "$status",
+        paymentStatus: "$paymentStatus",
+      },
+    },
+  ]);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Fetched all orders with admin revenue (4.99%)",
+    data: ordersWithRevenue,
+  });
+});
+
 
 export const writeReview = catchAsync (async (req, res) =>{
   const { review, rating,product, farm } = req.body;

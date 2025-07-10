@@ -118,6 +118,7 @@ export const getRequestProducts = catchAsync(async (req, res) => {
 
   const products = await Product.find({ status: "pending" })
     .populate("category", "name")
+    .populate("farm")
     .skip(skip)
     .limit(limit)
     .sort({ createdAt: -1 });
@@ -237,7 +238,7 @@ export const deleteBannerAds = catchAsync(async (req, res) => {
   if (!banner) {
     throw new AppError(httpStatus.NOT_FOUND, "Banner not found")
   }
-  banner.remove()
+  await Ads.findByIdAndDelete( req.params.id)
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,

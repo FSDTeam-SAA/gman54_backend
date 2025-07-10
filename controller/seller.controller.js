@@ -87,13 +87,13 @@ export const applySellerOrCreateFarm = catchAsync(async (req, res) => {
 
 // Dashboard overview
 export const getDashboardOverview = catchAsync(async (req, res) => {
-  const sellerId = req.user._id;
+  const sellerId = req.user.farm;
   const totalSales = await Order.aggregate([
-    { $match: { customer: sellerId } },
+    { $match: { farm: sellerId } },
     { $group: { _id: null, total: { $sum: "$totalPrice" } } },
   ]);
   const liveProducts = await Product.countDocuments({
-    farm: { $in: await Farm.find({ seller: sellerId }).distinct("_id") },
+    farm: { $in: await Farm.find({ farm: sellerId }).distinct("_id") },
     status: "active",
   });
 

@@ -51,7 +51,7 @@ router.delete("/request-products/:productId", protect, deleteProductRequest);
 
 // Upload Banner Ads
 router.post("/banner-ads", protect, upload.array("banners"), uploadBannerAds);
-router.get("/get-ads", protect, getBannerAds);
+router.get("/get-ads", getBannerAds);
 router.patch("/banner-ads/:id", protect, upload.array("banners"), updateAds);
 router.delete("/banner-ads/:id", protect, deleteBannerAds);
 
