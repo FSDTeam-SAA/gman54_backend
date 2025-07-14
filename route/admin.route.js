@@ -35,7 +35,7 @@ const router = express.Router();
 router.get("/overview", protect, getAdminOverview);
 
 // Categories
-router.get("/categories", protect, getCategoriesList);
+router.get("/categories", getCategoriesList);
 router.post("/categories", protect, addCategory);
 router.patch("/categories/:id", protect, updateCategory);
 router.delete("/categories/:id", protect, deleteCategory);
