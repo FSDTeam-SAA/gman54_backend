@@ -23,6 +23,8 @@ import {
   getBannerAds,
   updateAds,
   deleteBannerAds,
+  deleteSeller,
+  deleteUser,
 } from "../controller/admin.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
 import upload from "../middleware/multer.middleware.js";
@@ -65,6 +67,8 @@ router.delete("/blogs/:id", protect, deleteBlog);
 // Seller Profiles
 router.get("/sellers", protect, getSellerProfiles);
 router.get("/sellers/:sellerId", protect, getSellerProfile);
+router.delete("/sellers/:sellerId", protect, deleteSeller);
+
 
 // Seller Profile Requests
 router.get("/seller-requests", protect, getSellerProfileRequests);
@@ -81,6 +85,7 @@ router.get(
 router.delete("/seller-requests/:requestId", protect, deleteSellerRequest);
 
 router.get("/user-profile",getUserWiseOrderStatusSummary);
+router.delete("/user-profile/:userId",deleteUser);
 router.get("/admin-reveneu",getOrdersWithAdminRevenue)
 
 router.get("/dashboard",getAdminDashboard)
