@@ -43,12 +43,6 @@ const farmSchema = new mongoose.Schema({
         ref: "User",
         },}
     ],
-    longitude : {
-      type : Number,
-    },
-    latitude : {
-      type : Number,
-      },
 },{
   timestamps: true,
 });

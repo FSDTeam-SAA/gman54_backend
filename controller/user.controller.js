@@ -393,7 +393,7 @@ export const getReviews = catchAsync(async (req, res) => {
     statusCode: 200,
     success: true,
     message: "Reviews fetched successfully",
-    data: reviewDoc,
+    data: reviewDoc.review,
   });
 });
 

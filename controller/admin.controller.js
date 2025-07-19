@@ -407,53 +407,6 @@ export const getSellerProfile = catchAsync(async (req, res) => {
   });
 });
 
-
-export const deleteSeller = catchAsync(async (req, res) => {
-  const { sellerId } = req.params;
-
-  // Find the seller
-  const seller = await User.findById(sellerId);
-  if (!seller || seller.role !== "seller") {
-    throw new AppError(httpStatus.NOT_FOUND, "Seller not found");
-  }
-
-  // Find and delete the farm(s) associated with the seller
-  const farms = await Farm.find({ seller: seller._id });
-  const farmIds = farms.map(farm => farm._id);
-
-  await Farm.deleteMany({ seller: seller._id });
-
-  // Delete all products associated with the farm(s)
-  await Product.deleteMany({ farm: { $in: farmIds } });
-
-  // Delete the seller account
-  await User.findByIdAndDelete(sellerId);
-
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "Seller, their farm(s), and associated products deleted successfully",
-  });
-});
-
-
-export const deleteUser = catchAsync(async (req, res) => {
-  const { userId } = req.params;
-
-  // Find the seller
-  const seller = await User.findById(userId);
-
-
-  // Delete the seller account
-  await User.findByIdAndDelete(userId);
-
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "user deleted successfully",
-  });
-});
-
 // Seller Profile Request
 export const getSellerProfileRequests = catchAsync(async (req, res) => {
   const page = parseInt(req.query.page) || 1;
