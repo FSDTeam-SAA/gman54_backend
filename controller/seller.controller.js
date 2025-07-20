@@ -11,7 +11,7 @@ import { Category } from "../model/category.model.js";
 
 // Apply to become a seller or create a farm
 export const applySellerOrCreateFarm = catchAsync(async (req, res) => {
-  const { farmName, description, id, isOrganic } = req.body;
+  const { farmName, description, id, isOrganic,longitude , latitude } = req.body;
   const user = await User.findById(id);
   if (!user) {
     throw new AppError(httpStatus.NOT_FOUND, "User not found");
@@ -50,7 +50,9 @@ export const applySellerOrCreateFarm = catchAsync(async (req, res) => {
       images,
       videos,
       location: user.address,
-      isOrganic
+      isOrganic,
+      longitude ,
+      latitude ,
     });
     user.farm = newFarm._id;
     await user.save();
@@ -69,6 +71,9 @@ export const applySellerOrCreateFarm = catchAsync(async (req, res) => {
     farm.name = farmName;
     farm.description = description;
     farm.location = user.address
+    farm.isOrganic = isOrganic,
+    farm.longitude = longitude ,
+    farm.latitude = latitude ,
     await farm.save();
   } else {
     throw new AppError(

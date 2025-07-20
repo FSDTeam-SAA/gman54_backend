@@ -32,7 +32,7 @@ router.post("/write-review",protect,writeReview)
 
 
 router.post("/write-review-website",protect,writeReviewWebsite)
-router.get("/get-review-website",protect,getReviews)
+router.get("/get-review-website",getReviews)
 
 
 
