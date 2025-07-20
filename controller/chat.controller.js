@@ -46,7 +46,10 @@ export const sendMessage = catchAsync(async (req, res) => {
     const chat12 = await Chat.find({ _id: chatId }).select({ messages: { $slice: -1 } }) // Only include last message
         .populate("messages.user", "name role avatar"); // Populate sender of last message
 
-    io.to(`chat_${chatId}`).emit("newMassage", chat12.messages);
+    if(chat12.messages[0]){
+        io.to(`chat_${chatId}`).emit("newMassage", chat12.messages[0]);
+    }
+
 
     sendResponse(res, {
         statusCode: httpStatus.OK,
