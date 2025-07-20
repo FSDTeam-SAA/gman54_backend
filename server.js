@@ -7,11 +7,18 @@ import jwt from "jsonwebtoken";
 import router from "./mainroute/index.js";
 import { createServer } from "http";
 import { Server } from "socket.io";
+import webhookRoutes from './route/stripe.webhook.route.js'
 
 import globalErrorHandler from "./middleware/globalErrorHandler.js";
 import notFound from "./middleware/notFound.js";
 
+
+
 const app = express();
+
+// ********* Must be BEFORE app.use(express.json********************
+app.use('/api/stripe', webhookRoutes) 
+
 const server = createServer(app);
 export const io = new Server(server, {
   cors: {
