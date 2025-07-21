@@ -465,10 +465,12 @@ export const updateProduct = catchAsync(async (req, res) => {
   if (description) product.description = description;
   if (product_details) product.product_details = product_details;
 
+  const removeMedia1 = JSON.parse(removeMedia)
+
   // Remove specific media by public_id if provided
-  if (Array.isArray(removeMedia) && removeMedia.length > 0) {
+  if (Array.isArray(removeMedia1) && removeMedia1.length > 0) {
     product.media = product.media.filter(
-      (m) => !removeMedia.includes(m.public_id)
+      (m) => !removeMedia1.includes(m.public_id)
     );
   }
 
