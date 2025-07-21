@@ -26,7 +26,7 @@ const router = express.Router();
 
 // Become a seller
 router.post("/apply", upload.array("media"), applySellerOrCreateFarm);
-router.patch("/farm/update/:farmId", upload.array("media"), updateFarm);
+router.patch("/farm/update/:farmId",protect, upload.array("media"), updateFarm);
 router.get("/categories", protect, getAllCategories);
 
 // Dashboard and Product Management
