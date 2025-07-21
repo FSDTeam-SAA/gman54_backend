@@ -151,3 +151,40 @@ export const createStripeConnectAccount = async (req, res) => {
   }
 }
 
+
+
+export const getStripeDashboardLink = async (req, res) => {
+  try {
+    const { userId } = req.params
+
+    const user = await User.findById(userId)
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' })
+    }
+
+    if (!user.stripeAccountId) {
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: 'User does not have a connected Stripe account',
+        })
+    }
+
+    const loginLink = await stripe.accounts.createLoginLink(
+      user.stripeAccountId
+    )
+
+    return res.status(200).json({
+      success: true,
+      url: loginLink.url,
+    })
+  } catch (error) {
+    console.error('Error generating login link:', error)
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    })
+  }
+}
