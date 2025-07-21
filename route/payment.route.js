@@ -19,5 +19,8 @@ router.post("/confirm-payment", confirmPayment)
 
 router.post('/connect', createStripeConnectAccount)
 
+//  Stripe dashboard login link
+router.get('/stripe-login-link/:userId', getStripeDashboardLink)
+
 
 export default router
