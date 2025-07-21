@@ -10,12 +10,6 @@ import {
 
 const router = express.Router()
 
-// Generate client token for Braintree
-// router.get('/payments/client-token', getClientToken)
-
-// Process payment
-// router.post('/payments/checkout', makePayment)
-
 // Create Payment
 router.post("/create-payment", createPayment);
 
