@@ -5,6 +5,7 @@ import {
   createPayment,
   confirmPayment,
   createStripeConnectAccount,
+  getStripeDashboardLink,
 } from '../controller/payment.controller.js'
 
 

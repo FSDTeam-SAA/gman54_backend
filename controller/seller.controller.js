@@ -90,6 +90,81 @@ export const applySellerOrCreateFarm = catchAsync(async (req, res) => {
   });
 });
 
+
+export const updateFarm = catchAsync(async (req, res) => {
+  const { farmId } = req.params;
+  const {
+    farmName,
+    description,
+    isOrganic,
+    latitude,
+    longitude,
+    removeImages = [],
+    removeVideos = [],
+  } = req.body;
+
+  const farm = await Farm.findById(farmId);
+  if (!farm) {
+    throw new AppError(httpStatus.NOT_FOUND, "Farm not found");
+  }
+
+  // Optional: ensure only the farm owner can update
+  if (farm.seller.toString() !== req.user._id.toString()) {
+    throw new AppError(httpStatus.FORBIDDEN, "Unauthorized");
+  }
+
+  // Update text/location fields
+  if (farmName) farm.name = farmName;
+  if (description) farm.description = description;
+  if (isOrganic !== undefined) farm.isOrganic = isOrganic;
+  if (latitude !== undefined) farm.latitude = latitude;
+  if (longitude !== undefined) farm.longitude = longitude;
+
+  // Remove selected media by public_id
+  if (Array.isArray(removeImages) && removeImages.length > 0) {
+    farm.images = farm.images.filter(
+      (img) => !removeImages.includes(img.public_id)
+    );
+  }
+  if (Array.isArray(removeVideos) && removeVideos.length > 0) {
+    farm.videos = farm.videos.filter(
+      (vid) => !removeVideos.includes(vid.public_id)
+    );
+  }
+
+  // Handle newly uploaded files
+  if (req.files && req.files.length > 0) {
+    for (const file of req.files) {
+      const result = await uploadOnCloudinary(file.buffer, {
+        resource_type: file.mimetype.startsWith("video") ? "video" : "image",
+        folder: "farms",
+      });
+      const media = {
+        public_id: result.public_id,
+        url: result.secure_url,
+      };
+
+      if (file.mimetype.startsWith("video")) {
+        farm.videos.push(media);
+      } else {
+        farm.images.push(media);
+      }
+    }
+  }
+
+  await farm.save();
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Farm updated successfully",
+    data: farm,
+  });
+});
+
+
+
+
 // Dashboard overview
 export const getDashboardOverview = catchAsync(async (req, res) => {
   const sellerId = req.user.farm;
