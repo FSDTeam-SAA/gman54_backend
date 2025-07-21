@@ -93,14 +93,14 @@ export const applySellerOrCreateFarm = catchAsync(async (req, res) => {
 
 export const updateFarm = catchAsync(async (req, res) => {
   const { farmId } = req.params;
-  const {
+  let {
     farmName,
     description,
     isOrganic,
     latitude,
     longitude,
-    removeImages = [],
-    removeVideos = [],
+    removeImages = '[]',
+    removeVideos = '[]',
   } = req.body;
 
   const farm = await Farm.findById(farmId);
@@ -119,6 +119,8 @@ export const updateFarm = catchAsync(async (req, res) => {
   if (isOrganic !== undefined) farm.isOrganic = isOrganic;
   if (latitude !== undefined) farm.latitude = latitude;
   if (longitude !== undefined) farm.longitude = longitude;
+  removeImages = JSON.parse(removeImages)
+  removeVideos = JSON.parse(removeVideos)
 
   // Remove selected media by public_id
   if (Array.isArray(removeImages) && removeImages.length > 0) {
@@ -520,7 +522,7 @@ export const updateProduct = catchAsync(async (req, res) => {
   const { productId } = req.params;
   const {
     title, price, quantity, category, farmId,
-    description, product_details, removeMedia = []
+    description, product_details, removeMedia = '[]'
   } = req.body;
 
   const product = await Product.findById(productId).populate("farm");
