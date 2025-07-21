@@ -245,49 +245,111 @@ export const getPendingProducts = catchAsync(async (req, res) => {
 });
 
 // Add Product
+// export const addProduct = catchAsync(async (req, res) => {
+//   const sellerId = req.user._id;
+//   const { title, price, quantity, category, farmId,description,product_details } = req.body;
+
+//   let files = [];
+//   if (req.files) {
+//     if (Array.isArray(req.files.media)) files = files.concat(req.files.media);
+//     if (Array.isArray(req.files.thumbnail))
+//       files = files.concat(req.files.thumbnail);
+//   }
+
+//   console.log("Files to upload:", files);
+
+//   const farm = await Farm.findOne({ _id: farmId, seller: sellerId });
+//   if (!farm) {
+//     throw new AppError(httpStatus.NOT_FOUND, "Farm not found or unauthorized");
+//   }
+
+//   let media = [];
+//   if (files.length > 0) {
+//     media = await Promise.all(
+//       files.map(async (file) => {
+//         const uploadSource = file.buffer || file.path;
+//         const result = await uploadOnCloudinary(uploadSource, {
+//           folder: "products",
+//           resource_type:
+//             file.mimetype && file.mimetype.startsWith("video")
+//               ? "video"
+//               : "image",
+//         });
+//         return {
+//           public_id: result.public_id,
+//           url: result.secure_url,
+//           type:
+//             file.mimetype && file.mimetype.startsWith("video")
+//               ? "video"
+//               : "photo",
+//         };
+//       })
+//     );
+//   }
+
+//   const thumbnail = media.length > 0 ? media[0] : null;
+
+//   const product = await Product.create({
+//     title,
+//     price,
+//     quantity,
+//     category,
+//     thumbnail,
+//     media,
+//     farm: farmId,
+//     status: "pending",
+//     description,
+//     product_details
+//   });
+
+//   sendResponse(res, {
+//     statusCode: httpStatus.CREATED,
+//     success: true,
+//     message: "Product added successfully and is pending admin approval",
+//     data: product,
+//   });
+// });
+
 export const addProduct = catchAsync(async (req, res) => {
   const sellerId = req.user._id;
-  const { title, price, quantity, category, farmId,description,product_details } = req.body;
-
-  let files = [];
-  if (req.files) {
-    if (Array.isArray(req.files.media)) files = files.concat(req.files.media);
-    if (Array.isArray(req.files.thumbnail))
-      files = files.concat(req.files.thumbnail);
-  }
-
-  console.log("Files to upload:", files);
+  const { title, price, quantity, category, farmId, description, product_details } = req.body;
 
   const farm = await Farm.findOne({ _id: farmId, seller: sellerId });
   if (!farm) {
     throw new AppError(httpStatus.NOT_FOUND, "Farm not found or unauthorized");
   }
 
+  let thumbnail = null;
   let media = [];
-  if (files.length > 0) {
+
+  if (req.files?.thumbnail && Array.isArray(req.files.thumbnail)) {
+    const file = req.files.thumbnail[0];
+    const result = await uploadOnCloudinary(file.buffer || file.path, {
+      folder: "products",
+      resource_type: file.mimetype.startsWith("video") ? "video" : "image",
+    });
+    thumbnail = {
+      public_id: result.public_id,
+      url: result.secure_url,
+      type: file.mimetype.startsWith("video") ? "video" : "photo",
+    };
+  }
+
+  if (req.files?.media && Array.isArray(req.files.media)) {
     media = await Promise.all(
-      files.map(async (file) => {
-        const uploadSource = file.buffer || file.path;
-        const result = await uploadOnCloudinary(uploadSource, {
+      req.files.media.map(async (file) => {
+        const result = await uploadOnCloudinary(file.buffer || file.path, {
           folder: "products",
-          resource_type:
-            file.mimetype && file.mimetype.startsWith("video")
-              ? "video"
-              : "image",
+          resource_type: file.mimetype.startsWith("video") ? "video" : "image",
         });
         return {
           public_id: result.public_id,
           url: result.secure_url,
-          type:
-            file.mimetype && file.mimetype.startsWith("video")
-              ? "video"
-              : "photo",
+          type: file.mimetype.startsWith("video") ? "video" : "photo",
         };
       })
     );
   }
-
-  const thumbnail = media.length > 0 ? media[0] : null;
 
   const product = await Product.create({
     title,
@@ -299,7 +361,7 @@ export const addProduct = catchAsync(async (req, res) => {
     farm: farmId,
     status: "pending",
     description,
-    product_details
+    product_details,
   });
 
   sendResponse(res, {
@@ -310,24 +372,85 @@ export const addProduct = catchAsync(async (req, res) => {
   });
 });
 
+
+
 // Update Product
+// export const updateProduct = catchAsync(async (req, res) => {
+//   const { productId } = req.params;
+//   const { title, price, quantity, category, farmId,description,product_details } = req.body;
+
+//   let files = [];
+//   if (req.files) {
+//     if (Array.isArray(req.files.media)) files = files.concat(req.files.media);
+//     if (Array.isArray(req.files.thumbnail))
+//       files = files.concat(req.files.thumbnail);
+//   }
+
+//   const product = await Product.findById(productId).populate("farm");
+//   if (!product || product.farm.seller.toString() !== req.user._id.toString()) {
+//     throw new AppError(
+//       httpStatus.NOT_FOUND,
+//       "Product not found or unauthorized"
+//     );
+//   }
+
+//   if (title) product.title = title;
+//   if (price) product.price = price;
+//   if (quantity) product.quantity = quantity;
+//   if (category) product.category = category;
+//   if (farmId) {
+//     const farm = await Farm.findOne({ _id: farmId, seller: req.user._id });
+//     if (!farm) throw new AppError(httpStatus.NOT_FOUND, "Farm not found");
+//     product.farm = farmId;
+//   }
+//   if (description) product.description = description;
+//   if (product_details) product.product_details = product_details;
+
+//   if (files.length > 0) {
+//     const media = await Promise.all(
+//       files.map(async (file) => {
+//         const uploadSource = file.buffer || file.path;
+//         const result = await uploadOnCloudinary(uploadSource, {
+//           folder: "products",
+//           resource_type:
+//             file.mimetype && file.mimetype.startsWith("video")
+//               ? "video"
+//               : "image",
+//         });
+//         return {
+//           public_id: result.public_id,
+//           url: result.secure_url,
+//           type:
+//             file.mimetype && file.mimetype.startsWith("video")
+//               ? "video"
+//               : "photo",
+//         };
+//       })
+//     );
+//     product.thumbnail = media[0] || product.thumbnail;
+//     product.media = media.length > 0 ? media : product.media;
+//   }
+
+//   await product.save();
+
+//   sendResponse(res, {
+//     statusCode: httpStatus.OK,
+//     success: true,
+//     message: "Product updated successfully",
+//     data: product,
+//   });
+// });
+
 export const updateProduct = catchAsync(async (req, res) => {
   const { productId } = req.params;
-  const { title, price, quantity, category, farmId,description,product_details } = req.body;
-
-  let files = [];
-  if (req.files) {
-    if (Array.isArray(req.files.media)) files = files.concat(req.files.media);
-    if (Array.isArray(req.files.thumbnail))
-      files = files.concat(req.files.thumbnail);
-  }
+  const {
+    title, price, quantity, category, farmId,
+    description, product_details, removeMedia = []
+  } = req.body;
 
   const product = await Product.findById(productId).populate("farm");
   if (!product || product.farm.seller.toString() !== req.user._id.toString()) {
-    throw new AppError(
-      httpStatus.NOT_FOUND,
-      "Product not found or unauthorized"
-    );
+    throw new AppError(httpStatus.NOT_FOUND, "Product not found or unauthorized");
   }
 
   if (title) product.title = title;
@@ -342,29 +465,43 @@ export const updateProduct = catchAsync(async (req, res) => {
   if (description) product.description = description;
   if (product_details) product.product_details = product_details;
 
-  if (files.length > 0) {
-    const media = await Promise.all(
-      files.map(async (file) => {
-        const uploadSource = file.buffer || file.path;
-        const result = await uploadOnCloudinary(uploadSource, {
+  // Remove specific media by public_id if provided
+  if (Array.isArray(removeMedia) && removeMedia.length > 0) {
+    product.media = product.media.filter(
+      (m) => !removeMedia.includes(m.public_id)
+    );
+  }
+
+  // Upload new thumbnail (if provided)
+  if (req.files?.thumbnail && Array.isArray(req.files.thumbnail)) {
+    const file = req.files.thumbnail[0];
+    const result = await uploadOnCloudinary(file.buffer || file.path, {
+      folder: "products",
+      resource_type: file.mimetype.startsWith("video") ? "video" : "image",
+    });
+    product.thumbnail = {
+      public_id: result.public_id,
+      url: result.secure_url,
+      type: file.mimetype.startsWith("video") ? "video" : "photo",
+    };
+  }
+
+  // Upload new media and append to existing
+  if (req.files?.media && Array.isArray(req.files.media)) {
+    const newMedia = await Promise.all(
+      req.files.media.map(async (file) => {
+        const result = await uploadOnCloudinary(file.buffer || file.path, {
           folder: "products",
-          resource_type:
-            file.mimetype && file.mimetype.startsWith("video")
-              ? "video"
-              : "image",
+          resource_type: file.mimetype.startsWith("video") ? "video" : "image",
         });
         return {
           public_id: result.public_id,
           url: result.secure_url,
-          type:
-            file.mimetype && file.mimetype.startsWith("video")
-              ? "video"
-              : "photo",
+          type: file.mimetype.startsWith("video") ? "video" : "photo",
         };
       })
     );
-    product.thumbnail = media[0] || product.thumbnail;
-    product.media = media.length > 0 ? media : product.media;
+    product.media.push(...newMedia);
   }
 
   await product.save();
@@ -376,6 +513,7 @@ export const updateProduct = catchAsync(async (req, res) => {
     data: product,
   });
 });
+
 
 // Delete Product
 export const deleteProduct = catchAsync(async (req, res) => {
