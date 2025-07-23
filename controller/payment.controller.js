@@ -52,15 +52,90 @@ export const createPayment = async (req, res) => {
   }
 }
 
+// export const confirmPayment = async (req, res) => {
+//   const { paymentIntentId } = req.body
+
+//   if (!paymentIntentId) {
+//     return res.status(400).json({ error: 'paymentIntentId is required.' })
+//   }
+
+//   try {
+//     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)
+
+//     if (paymentIntent.status !== 'succeeded') {
+//       await paymentInfo.findOneAndUpdate(
+//         { transactionId: paymentIntentId },
+//         { paymentStatus: 'failed' }
+//       )
+
+//       return res.status(400).json({ error: 'Payment was not successful.' })
+//     }
+
+//     const paymentRecord = await paymentInfo.findOneAndUpdate(
+//       { transactionId: paymentIntentId },
+//       { paymentStatus: 'complete' },
+//       { new: true }
+//     )
+
+//     if (paymentRecord?.orderId) {
+//       const order = await Order.findByIdAndUpdate(paymentRecord.orderId, {
+//         paymentStatus: 'paid',
+//       }).populate('farm', 'seller')
+
+//       // Get seller account ID
+//       const sellerUser = await User.findById(order.farm.seller) // You must pass sellerId to paymentInfo when creating it
+//       const sellerStripeAccountId = sellerUser?.stripeAccountId
+
+//       if (!sellerStripeAccountId) {
+//         return res
+//           .status(400)
+//           .json({ error: 'Seller Stripe account not connected.' })
+//       }
+
+//       const adminShare = Math.round(paymentRecord.price * 0.049 * 100) // 5%
+//       const sellerShare = Math.round(paymentRecord.price * 0.951 * 100) // 95%
+
+//       // Transfer 95% to the seller
+//       const transfer = await stripe.transfers.create({
+//         amount: sellerShare,
+//         currency: 'usd',
+//         destination: sellerStripeAccountId,
+//         transfer_group: `ORDER_${paymentIntent.id}`,
+//       })
+//       console.log('first', paymentInfo.id)
+
+//       if (!transfer) {
+//         return res.status(400).json({ error: 'Transfer failed.' })
+//       }
+//     }
+
+//     return res.status(200).json({
+//       success: true,
+//       message: 'Payment processed and transferred.',
+//       paymentIntent,
+//     })
+//   } catch (error) {
+//     console.error('Error confirming or transferring payment:', error)
+//     res.status(500).json({ error: 'Internal server error.' })
+//   }
+// }
+
+
+
 export const confirmPayment = async (req, res) => {
   const { paymentIntentId } = req.body
 
   if (!paymentIntentId) {
-    return res.status(400).json({ error: 'paymentIntentId is required.' })
+    return res.status(400).json({ error: 'Missing paymentIntentId in request body.' })
   }
 
   try {
+    // Retrieve payment intent from Stripe
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)
+
+    if (!paymentIntent) {
+      return res.status(404).json({ error: 'PaymentIntent not found.' })
+    }
 
     if (paymentIntent.status !== 'succeeded') {
       await paymentInfo.findOneAndUpdate(
@@ -68,52 +143,80 @@ export const confirmPayment = async (req, res) => {
         { paymentStatus: 'failed' }
       )
 
-      return res.status(400).json({ error: 'Payment was not successful.' })
+      return res.status(400).json({ error: 'Payment did not succeed.' })
     }
 
+    // Update payment record
     const paymentRecord = await paymentInfo.findOneAndUpdate(
       { transactionId: paymentIntentId },
       { paymentStatus: 'complete' },
       { new: true }
     )
 
-    if (paymentRecord?.orderId) {
-      const order = await Order.findByIdAndUpdate(paymentRecord.orderId, {
-        paymentStatus: 'paid',
-      }).populate('farm', 'seller')
+    if (!paymentRecord) {
+      return res.status(404).json({ error: 'Payment record not found in database.' })
+    }
 
-      // Get seller account ID
-      const sellerUser = await User.findById(order.farm.seller) // You must pass sellerId to paymentInfo when creating it
-      const sellerStripeAccountId = sellerUser?.stripeAccountId
+    // Handle order-related updates and transfers
+    if (paymentRecord.orderId) {
+      const order = await Order.findByIdAndUpdate(
+        paymentRecord.orderId,
+        { paymentStatus: 'paid' },
+        { new: true }
+      ).populate('farm', 'seller')
 
-      if (!sellerStripeAccountId) {
-        return res
-          .status(400)
-          .json({ error: 'Seller Stripe account not connected.' })
+      if (!order || !order.farm || !order.farm.seller) {
+        return res.status(404).json({ error: 'Associated order or seller not found.' })
       }
 
-      const adminShare = Math.round(paymentRecord.price * 0.049 * 100) // 5%
-      const sellerShare = Math.round(paymentRecord.price * 0.951 * 100) // 95%
+      const sellerUser = await User.findById(order.farm.seller)
 
-      // Transfer 95% to the seller
-      await stripe.transfers.create({
-        amount: sellerShare,
-        currency: 'usd',
-        destination: sellerStripeAccountId,
-        transfer_group: `ORDER_${paymentIntent.id}`,
-      })
+      if (!sellerUser?.stripeAccountId) {
+        return res.status(400).json({ error: 'Seller has not connected their Stripe account.' })
+      }
+
+      const amountInCents = Math.round(paymentRecord.price * 100)
+      const adminShare = Math.round(amountInCents * 0.049) // 4.9%
+      const sellerShare = amountInCents - adminShare
+
+      try {
+        const transfer = await stripe.transfers.create({
+          amount: sellerShare,
+          currency: 'usd',
+          destination: sellerUser.stripeAccountId,
+          transfer_group: `ORDER_${paymentIntentId}`,
+        })
+        console.log(transfer)
+
+        if (!transfer ) {
+          return res.status(500).json({ error: 'Transfer to seller failed.' })
+        }
+      } catch (transferError) {
+        console.error('Stripe transfer error:', transferError)
+        return res.status(500).json({ error: 'Error while transferring funds to seller.' })
+      }
     }
 
     return res.status(200).json({
       success: true,
-      message: 'Payment processed and transferred.',
-      paymentIntent,
+      message: 'Payment confirmed and processed successfully.',
+      paymentIntentId,
     })
-  } catch (error) {
-    console.error('Error confirming or transferring payment:', error)
-    res.status(500).json({ error: 'Internal server error.' })
+  } catch (err) {
+    console.error('Payment confirmation error:', err)
+
+    let errorMessage = 'Internal server error.'
+    if (err.type === 'StripeInvalidRequestError') {
+      errorMessage = err.message || 'Invalid Stripe request.'
+    }
+
+    return res.status(500).json({
+      error: errorMessage,
+      stripeError: err?.raw?.message || null,
+    })
   }
 }
+
 
 export const createStripeConnectAccount = async (req, res) => {
   try {
@@ -151,8 +254,6 @@ export const createStripeConnectAccount = async (req, res) => {
   }
 }
 
-
-
 export const getStripeDashboardLink = async (req, res) => {
   try {
     const { userId } = req.params
@@ -164,12 +265,10 @@ export const getStripeDashboardLink = async (req, res) => {
     }
 
     if (!user.stripeAccountId) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: 'User does not have a connected Stripe account',
-        })
+      return res.status(400).json({
+        success: false,
+        message: 'User does not have a connected Stripe account',
+      })
     }
 
     const loginLink = await stripe.accounts.createLoginLink(
