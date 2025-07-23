@@ -43,7 +43,7 @@ export const sendMessage = catchAsync(async (req, res) => {
     chat.messages.push(messages);
     await chat.save();
 
-    const chat12 = await Chat.find({ _id: chatId }).select({ messages: { $slice: -1 } }) // Only include last message
+    const chat12 = await Chat.findOne({ _id: chatId }).select({ messages: { $slice: -1 } }) // Only include last message
         .populate("messages.user", "name role avatar"); // Populate sender of last message
 
     if(chat12.messages[0]){
@@ -118,7 +118,8 @@ export const getChatForUser = catchAsync(async (req, res) => {
     const user = req.user._id
     const chat = await Chat.find({ user })
         .select({ messages: { $slice: -1 } }) // Only include last message
-        .populate("messages.user", "name role avatar"); // Populate sender of last message
+        .populate("messages.user", "name role avatar") // Populate sender of last message
+        .sort({ updatedAt: -1 }); // Sort by last updated time
     sendResponse(res, {
         statusCode: httpStatus.OK,
         message: "Chat retrieved successfully",
@@ -130,7 +131,8 @@ export const getChatForUser = catchAsync(async (req, res) => {
 export const getChatForFarm = catchAsync(async (req, res) => {
     const { farmId } = req.params
     const chat = await Chat.find({ farm: farmId }).select({ messages: { $slice: -1 } }) // Only include last message
-        .populate("messages.user", "name role avatar"); // Populate sender of last message
+        .populate("messages.user", "name role avatar") // Populate sender of last message
+        .sort({ updatedAt: -1 }); // Sort by last updated time
     sendResponse(res, {
         statusCode: httpStatus.OK,
         message: "Chat retrieved successfully",
