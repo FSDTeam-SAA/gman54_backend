@@ -9,6 +9,7 @@ import { Product } from "./../model/product.model.js";
 import { Blog } from "./../model/blog.model.js";
 import { uploadOnCloudinary } from "./../utils/commonMethod.js";
 import { Ads } from "../model/ads.model.js";
+import { Chat } from "../model/chat.modal.js";
 
 // Overview
 export const getAdminOverview = catchAsync(async (req, res) => {
@@ -425,6 +426,8 @@ export const deleteSeller = catchAsync(async (req, res) => {
 
   // Delete all products associated with the farm(s)
   await Product.deleteMany({ farm: { $in: farmIds } });
+
+  await Chat.deleteMany({ farm: { $in: farmIds } });
 
   // Delete the seller account
   await User.findByIdAndDelete(sellerId);
