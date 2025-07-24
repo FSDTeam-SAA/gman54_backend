@@ -10,9 +10,9 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 export const createPayment = async (req, res) => {
   const { userId, price, orderId, type } = req.body
 
-  if (!userId || !price || !type) {
+  if (!price || !type) {
     return res.status(400).json({
-      error: 'userId, and amount are required.',
+      error: 'amount is required.',
     })
   }
 
