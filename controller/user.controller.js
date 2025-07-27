@@ -8,6 +8,7 @@ import { Order } from "../model/order.model.js";
 import { Farm } from "../model/farm.model.js";
 import { Product } from "../model/product.model.js";
 import { Review } from "../model/review.model.js";
+import { Ads } from "../model/ads.model.js";
 
 // Get user profile
 export const getProfile = catchAsync(async (req, res) => {
@@ -421,5 +422,15 @@ export const writeReviewWebsite = catchAsync(async (req, res) => {
     data: reviewDoc,
   });
 });
+
+export const postcountClick = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  await Ads.findByIdAndUpdate( id, { $inc: { click: 1 } }, { new: true });
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Click count updated successfully",
+    });
+})
 
 

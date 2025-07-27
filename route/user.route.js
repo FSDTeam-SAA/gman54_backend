@@ -6,6 +6,7 @@ import {
   writeReview,
   writeReviewWebsite,
   getReviews,
+  postcountClick,
 } from "../controller/user.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
 import upload from "../middleware/multer.middleware.js";
@@ -33,6 +34,8 @@ router.post("/write-review",protect,writeReview)
 
 router.post("/write-review-website",protect,writeReviewWebsite)
 router.get("/get-review-website",getReviews)
+
+router.post("/post-click/:id", postcountClick)
 
 
 
