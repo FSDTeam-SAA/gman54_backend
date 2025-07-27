@@ -171,6 +171,7 @@ export const deleteProductRequest = catchAsync(async (req, res) => {
 
 // Upload Banner Ads
 export const uploadBannerAds = catchAsync(async (req, res) => {
+  const {title, link} = req.body
   if (!req.files || req.files.length === 0) {
     throw new AppError(
       httpStatus.BAD_REQUEST,
@@ -184,7 +185,7 @@ export const uploadBannerAds = catchAsync(async (req, res) => {
         resource_type: "image",
         folder: "banners",
       });
-      let ban = await Ads.create({ thumbnail: { public_id: result.public_id, url: result.secure_url } })
+      let ban = await Ads.create({ thumbnail: { public_id: result.public_id, url: result.secure_url },title, link })
       return ban
     })
   );
@@ -201,6 +202,7 @@ export const uploadBannerAds = catchAsync(async (req, res) => {
 
 export const updateAds = catchAsync(async (req, res) => {
   const { id } = req.params;
+  const {title, link} = req.body
 
   const banners = await Promise.all(
     req.files.map(async (file) => {
@@ -208,7 +210,7 @@ export const updateAds = catchAsync(async (req, res) => {
         resource_type: "image",
         folder: "banners",
       });
-      let ban = await Ads.findByIdAndUpdate(id,{ thumbnail: { public_id: result.public_id, url: result.secure_url } },{new: true})
+      let ban = await Ads.findByIdAndUpdate(id,{ thumbnail: { public_id: result.public_id, url: result.secure_url },title,link },{new: true})
       return ban
     })
   );
