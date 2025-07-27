@@ -9,7 +9,7 @@ export const contactUs = catchAsync(async (req, res) => {
     if (!email || !name || !phone || !message) {
         throw new AppError(400, "Please fill all the fields");
     }
-    const to = "tahsin.bdcalling@gmail.com"
+    const to = "info@tablefresh.org"
     const html = sendMessageTemplate({ email, name,phone, message })
     // console.log(to, html)
 
