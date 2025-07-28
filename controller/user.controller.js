@@ -425,7 +425,7 @@ export const writeReviewWebsite = catchAsync(async (req, res) => {
 
 export const postcountClick = catchAsync(async (req, res) => {
   const { id } = req.params;
-  await Ads.findByIdAndUpdate( id, { $inc: { click: 1 } }, { new: true });
+  await Ads.findByIdAndUpdate( id, { $inc: { clicked: 1 } }, { new: true });
   sendResponse(res, {
     statusCode: 200,
     success: true,
