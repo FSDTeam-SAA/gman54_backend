@@ -436,7 +436,6 @@ export const addProduct = catchAsync(async (req, res) => {
     thumbnail,
     media,
     farm: farmId,
-    status: "pending",
     description,
     product_details,
   });
