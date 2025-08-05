@@ -40,28 +40,35 @@ export const register = catchAsync(async (req, res) => {
   // await sendEmail(user.email, "Registerd Account", `Your OTP is ${otp}`);
   // create token and sent to the client
 
-  // const jwtPayload = {
-  //     _id: user._id,
-  //     email: user.email,
-  //     role: user.role,
-  // };
-  // const accessToken = createToken(
-  //     jwtPayload,
-  //     process.env.JWT_ACCESS_SECRET,
-  //     process.env.JWT_ACCESS_EXPIRES_IN,
-  // );
+  const jwtPayload = {
+      _id: user._id,
+      email: user.email,
+      role: user.role,
+  };
+  const accessToken = createToken(
+      jwtPayload,
+      process.env.JWT_ACCESS_SECRET,
+      process.env.JWT_ACCESS_EXPIRES_IN,
+  );
 
-  // const refreshToken = createToken(
-  //     jwtPayload,
-  //     process.env.JWT_REFRESH_SECRET,
-  //     process.env.JWT_REFRESH_EXPIRES_IN,
-  // );
+  const refreshToken = createToken(
+      jwtPayload,
+      process.env.JWT_REFRESH_SECRET,
+      process.env.JWT_REFRESH_EXPIRES_IN,
+  );
+  user.refreshToken = refreshToken;
+  await user.save();
+ user.accessToken = accessToken;
+
+const userObj = user.toObject();
+userObj.accessToken = accessToken;
+
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: "User Logged in successfully",
-    data: user,
+    data: userObj,
   });
 });
 
