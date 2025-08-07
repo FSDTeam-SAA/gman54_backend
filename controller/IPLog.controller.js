@@ -3,9 +3,13 @@ import IPLog from "../model/IPLog.model.js";
 // POST /ip/track
 export const trackIP = async (req, res) => {
   try {
-    const ip =
+     const ip =
       req.headers["x-forwarded-for"]?.split(",")[0] ||
-      req.connection.remoteAddress;
+      req.connection?.remoteAddress ||
+      req.socket?.remoteAddress ||
+      req.ip;
+
+    console.log(`Tracking IP: ${ip}`);
 
     const path = req.body.path || "/";
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
