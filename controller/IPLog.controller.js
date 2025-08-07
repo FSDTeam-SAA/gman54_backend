@@ -3,11 +3,14 @@ import IPLog from "../model/IPLog.model.js";
 // POST /ip/track
 export const trackIP = async (req, res) => {
   try {
-     const ip =
+    let ip =
       req.headers["x-forwarded-for"]?.split(",")[0] ||
       req.connection?.remoteAddress ||
       req.socket?.remoteAddress ||
       req.ip;
+
+    // Optional: Strip IPv6 prefix
+    ip = ip?.replace(/^::ffff:/, "");
 
     console.log(`Tracking IP: ${ip}`);
 
